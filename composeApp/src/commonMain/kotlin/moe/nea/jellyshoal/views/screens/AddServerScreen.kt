@@ -1,17 +1,22 @@
 package moe.nea.jellyshoal.views.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Login
+import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -30,8 +35,9 @@ private enum class LoginState {
 @Composable
 fun AddServerScreen(serverUrl: String) {
 	val loginName = remember { mutableStateOf(TextFieldValue()) }
-	val password = remember { mutableStateOf(TextFieldValue()) }
+	val (password, setPassword) = remember { mutableStateOf(TextFieldValue()) }
 	val loginState = remember { mutableStateOf(LoginState.ENTERING) }
+	val showPassword = remember { mutableStateOf(false) }
 	val navController = findGlobalNavController()
 	val scope = rememberCoroutineScope()
 	Column(
@@ -50,13 +56,27 @@ fun AddServerScreen(serverUrl: String) {
 				loginName::value::set,
 				modifier = Modifier.padding(10.dp),
 				label = { Text("user name") },
-//				leadingIcon = { Icon(MaterialIcons) }
+				leadingIcon = { Icon(imageVector = Icons.Outlined.Person, contentDescription = null) },
 			)
 			OutlinedTextField(
-				password.value,
-				password::value::set,
+				password,
+				setPassword,
+				visualTransformation = if (!showPassword.value) PasswordVisualTransformation() else VisualTransformation.None,
 				modifier = Modifier.padding(10.dp),
 				label = { Text("password") },
+				leadingIcon = { Icon(imageVector = Icons.Outlined.Key, contentDescription = null) },
+				trailingIcon = {
+					IconButton(onClick = {
+						showPassword.value = !showPassword.value
+					}) {
+						Icon(
+							if (showPassword.value) Icons.Outlined.VisibilityOff
+							else Icons.Outlined.Visibility,
+							contentDescription = if (showPassword.value) "Hide Password"
+							else "Show Password"
+						)
+					}
+				}
 			)
 			Spacer(Modifier.height(5.dp))
 			Button(
@@ -67,7 +87,7 @@ fun AddServerScreen(serverUrl: String) {
 					scope.launch {
 						try {
 							val userApi = UserApi(sharedJellyfinInstance.createApi(baseUrl = serverUrl))
-							val result by userApi.authenticateUserByName(loginName.value.text, password.value.text)
+							val result by userApi.authenticateUserByName(loginName.value.text, password.text)
 							val token = result.accessToken!!
 							println("Saving token $token for $serverUrl!")
 							navController.navigate(HomePage)
@@ -79,6 +99,7 @@ fun AddServerScreen(serverUrl: String) {
 					}
 				}
 			) {
+				Icon(imageVector = Icons.AutoMirrored.Outlined.Login, contentDescription = null)
 				Text("Log In")
 			}
 			// TODO: button for quick connect

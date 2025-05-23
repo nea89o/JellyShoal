@@ -38,6 +38,7 @@ kotlin {
 			implementation(libs.jellyfin.core)
 			implementation(libs.kotlinx.serialization.json)
 			implementation(libs.androidx.navigation.compose)
+			implementation(libs.androidx.material3.iconsExtended)
 //			implementation(libs.androidx.navigation.fragment)
 //			implementation(libs.androidx.navigation.ui)
 //			implementation(libs.androidx.navigation.features.fragment)
