@@ -16,9 +16,15 @@ junit = "4.13.2"
 jellyfin = "1.6.8"
 kotlin = "2.1.21"
 kotlinx-coroutines = "1.10.2"
+androidNavigation = "2.9.0-beta01"
 serialization-json = "1.8.1"
+slf4jSimple = "2.0.17"
 
 [libraries]
+androidx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "androidNavigation" }
+androidx-navigation-features-fragment = { module = "androidx.navigation:navigation-dynamic-features-fragment", version.ref = "androidNavigation" }
+androidx-navigation-ui = { module = "androidx.navigation:navigation-ui", version.ref = "androidNavigation" }
+androidx-navigation-fragment = { module = "androidx.navigation:navigation-fragment", version.ref = "androidNavigation" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }
@@ -33,6 +39,7 @@ androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle
 kotlinx-coroutinesSwing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization-json" }
 jellyfin-core = { module = "org.jellyfin.sdk:jellyfin-core", version.ref = "jellyfin" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jSimple" }
 
 
 [plugins]
