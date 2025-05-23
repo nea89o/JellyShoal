@@ -17,6 +17,7 @@ val globalNavigationLocal =
 
 @Composable
 fun findGlobalNavController(): NavHostController {
+	// TODO: wrap into a sealed class of some sort for routes
 	return globalNavigationLocal.current
 }
 
@@ -30,6 +31,7 @@ fun NavigationContext() {
 			startDestination = WelcomePage,
 		) {
 			composable<WelcomePage> { WelcomeView() }
+			// TODO: automatically load the .toRoute<T> call
 			composable<AddServerPage> {
 				AddServerScreen(it.toRoute<AddServerPage>().serverUrl)
 			}

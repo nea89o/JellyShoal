@@ -1,13 +1,8 @@
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.getByName
-import org.gradle.kotlin.dsl.implementation
-import org.gradle.kotlin.dsl.invoke
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.jetbrainsCompose
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
 	alias(libs.plugins.kotlinMultiplatform)
@@ -16,6 +11,7 @@ plugins {
 	alias(libs.plugins.composeMultiplatform)
 	alias(libs.plugins.composeCompiler)
 	alias(libs.plugins.composeHotReload)
+	id("com.github.gmazzo.buildconfig") version "5.5.0"
 }
 kotlin {
 	androidTarget {
@@ -69,6 +65,13 @@ repositories {
 dependencies {
 	debugImplementation(compose.uiTooling)
 }
+val versionName = "${project.version}"
+
+buildConfig {
+	packageName("moe.nea.jellyshoal.build")
+	buildConfigField<String>("VERSION",versionName)
+	buildConfigField<String>("BRAND","JellyShoal")
+}
 
 compose.desktop {
 	application {
@@ -77,7 +80,7 @@ compose.desktop {
 		nativeDistributions {
 			targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
 			packageName = "moe.nea.jellyshoal"
-			packageVersion = "1.0.0"
+			packageVersion = versionName
 		}
 	}
 }
@@ -90,7 +93,7 @@ android {
 		minSdk = libs.versions.android.minSdk.get().toInt()
 		targetSdk = libs.versions.android.targetSdk.get().toInt()
 		versionCode = 1
-		versionName = "1.0"
+		versionName = versionName
 	}
 	packaging {
 		resources {
