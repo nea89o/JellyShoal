@@ -17,9 +17,15 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import moe.nea.jellyshoal.data.DataStore
+import moe.nea.jellyshoal.data.Preferences
+import moe.nea.jellyshoal.data.findGlobalPreferences
 import moe.nea.jellyshoal.pages.AddServerPage
 import moe.nea.jellyshoal.pages.SettingsPage
 import moe.nea.jellyshoal.pages.findGlobalNavController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import moe.nea.jellyshoal.data.findPreference
 
 private enum class Step {
 	Welcome,
@@ -28,13 +34,15 @@ private enum class Step {
 
 @Composable
 fun WelcomeView() {
+	val testValue = findPreference { testValue }
 	val page = remember { mutableStateOf(Step.Welcome) }
-	val server = remember { mutableStateOf(TextFieldValue()) }
+	val server = remember { mutableStateOf(TextFieldValue(testValue.value)) }
 	val navController = findGlobalNavController()
 	fun login() {
 		// TODO: validate url
 		val serverUrl = server.value.text
 		navController.navigate(AddServerPage(serverUrl))
+		testValue.value = server.value.text
 	}
 	Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize().padding(8.dp)) {
 		when (page.value) {

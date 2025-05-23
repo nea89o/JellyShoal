@@ -1,4 +1,3 @@
-import org.gradle.kotlin.dsl.dependencies
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.jetbrainsCompose
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
@@ -19,6 +18,10 @@ kotlin {
 		compilerOptions {
 			jvmTarget.set(JvmTarget.JVM_11)
 		}
+	}
+
+	compilerOptions {
+		freeCompilerArgs.add("-Xallow-kotlin-package")
 	}
 
 	jvm("desktop")
@@ -42,6 +45,7 @@ kotlin {
 //			implementation(libs.androidx.navigation.fragment)
 //			implementation(libs.androidx.navigation.ui)
 //			implementation(libs.androidx.navigation.features.fragment)
+			implementation(libs.kotlinLogging)
 			runtimeOnly(libs.slf4j.simple)
 		}
 		commonTest.dependencies {
@@ -50,6 +54,7 @@ kotlin {
 		desktopMain.dependencies {
 			implementation(compose.desktop.currentOs)
 			implementation(libs.kotlinx.coroutinesSwing)
+			implementation(libs.directories)
 		}
 		androidMain.dependencies {
 			implementation(compose.preview)
@@ -70,8 +75,10 @@ val versionName = "${project.version}"
 
 buildConfig {
 	packageName("moe.nea.jellyshoal.build")
-	buildConfigField<String>("VERSION",versionName)
-	buildConfigField<String>("BRAND","JellyShoal")
+	buildConfigField<String>("VERSION", versionName)
+	buildConfigField<String>("BRAND", "JellyShoal")
+	buildConfigField<String>("GROUP_QUALIFIER", "moe.nea")
+	buildConfigField<String>("PUBLISHER", "Linnea Gräf")
 }
 
 compose.desktop {
