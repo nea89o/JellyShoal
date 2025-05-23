@@ -2,13 +2,14 @@ package moe.nea.jellyshoal
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
 import moe.nea.jellyshoal.pages.NavigationContext
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview
-fun App() {
+fun App(navHostController: NavHostController?) {
 	MaterialTheme {
-		NavigationContext()
+		NavigationContext(navHostController)
 	}
 }

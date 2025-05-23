@@ -2,6 +2,7 @@ package moe.nea.jellyshoal.views.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -14,6 +15,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import moe.nea.jellyshoal.pages.HomePage
 import moe.nea.jellyshoal.pages.findGlobalNavController
 import moe.nea.jellyshoal.util.jellyfin.sharedJellyfinInstance
 import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
@@ -34,22 +36,26 @@ fun AddServerScreen(serverUrl: String) {
 	val scope = rememberCoroutineScope()
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
-		verticalArrangement = Arrangement.Center,
 		modifier = Modifier.fillMaxSize(),
 	) {
-		Column {
+		Column(
+			verticalArrangement = Arrangement.Center,
+			modifier = Modifier.fillMaxHeight()
+		) {
 			Text("Adding server", fontSize = 20.sp)
 			Text("Trying to join ${serverUrl}.")
 			Spacer(Modifier.height(10.dp))
-			TextField(
+			OutlinedTextField(
 				loginName.value,
 				loginName::value::set,
+				modifier = Modifier.padding(10.dp),
 				label = { Text("user name") },
 //				leadingIcon = { Icon(MaterialIcons) }
 			)
-			TextField(
+			OutlinedTextField(
 				password.value,
 				password::value::set,
+				modifier = Modifier.padding(10.dp),
 				label = { Text("password") },
 			)
 			Spacer(Modifier.height(5.dp))
@@ -60,11 +66,11 @@ fun AddServerScreen(serverUrl: String) {
 					loginState.value = LoginState.AUTHENTICATING
 					scope.launch {
 						try {
-							val userApi = UserApi(sharedJellyfinInstance.createApi())
+							val userApi = UserApi(sharedJellyfinInstance.createApi(baseUrl = serverUrl))
 							val result by userApi.authenticateUserByName(loginName.value.text, password.value.text)
 							val token = result.accessToken!!
-							println("Saving token $token!")
-							// navController.navigate()
+							println("Saving token $token for $serverUrl!")
+							navController.navigate(HomePage)
 						} catch (e: Exception) {
 							loginState.value = LoginState.FAILURE
 							// TODO: disambiguate between failure modes and display message
