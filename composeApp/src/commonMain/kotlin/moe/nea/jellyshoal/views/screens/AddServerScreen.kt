@@ -23,7 +23,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import moe.nea.jellyshoal.layouts.CenterColumn
-import moe.nea.jellyshoal.pages.HomePage
 import moe.nea.jellyshoal.util.ShoalRoute
 import moe.nea.jellyshoal.util.error.explainHttpError
 import moe.nea.jellyshoal.util.findGlobalNavController

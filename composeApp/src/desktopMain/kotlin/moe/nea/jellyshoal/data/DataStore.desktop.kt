@@ -1,18 +1,16 @@
 package moe.nea.jellyshoal.data
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.dirs.ProjectDirectories
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import moe.nea.jellyshoal.build.BuildConfig
 import java.io.File
 import java.util.*
 
 
-actual object DataStore { // TODO: this could potentially be a class that is injected into the local context using a provider.
+actual object DataStore : IDataStore() { // TODO: this could potentially be a class that is injected into the local context using a provider.
 	val logger = KotlinLogging.logger {}
 	val paths = ProjectDirectories.from(
 		BuildConfig.GROUP_QUALIFIER,
@@ -34,31 +32,35 @@ actual object DataStore { // TODO: this could potentially be a class that is inj
 		}
 		props
 	}
+	val propsT = (props as MutableMap<String, String>)
+	val propFlow = MutableStateFlow(propsT)
 
 	fun saveConfig() {
-
 		configFile.writer().use {
 			props.store(it, "Configuration and logins for ${BuildConfig.BRAND}. Saved at ${Date()}.")
 		}
 	}
 
-	actual fun createStringValue(key: String): DataValue<String> {
-		val defaultValue = ""
-		val flow = MutableStateFlow(props.getProperty(key) ?: defaultValue)
-		return object : DataValue<String> {
-			@Composable
-			override fun asState(): State<String> {
-				return get().collectAsStateWithLifecycle(props.getProperty(key, defaultValue))
+	override fun createMapValueWithPrefix(prefix: String): DataValue<Map<String, String>> {
+		fun filterProps(map: Map<String, String>) = map.filterKeys { it.startsWith(prefix) }
+		val flow = propFlow.map { filterProps(it) }
+		return object : DataValue<Map<String, String>> {
+			override fun getCurrent(): Map<String, String> {
+				return filterProps(propsT)
 			}
 
-			override fun get(): Flow<String> {
+			override fun get(): Flow<Map<String, String>> {
 				return flow
 			}
 
-			override fun set(value: String) {
-				flow.value = value
-				props[key] = value
-				saveConfig() // TODO: dispatch to another thread for writing? or only on application exit
+			override fun set(value: Map<String, String>) {
+				val p = filterProps(propsT)
+				for (key in p.keys) {
+					if (key in value) {
+						propsT.remove(key)
+					}
+				}
+				props.putAll(value)
 			}
 		}
 	}
