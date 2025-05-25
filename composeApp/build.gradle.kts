@@ -30,6 +30,7 @@ kotlin {
 		val desktopMain by getting
 
 		commonMain.dependencies {
+			// Compose basics
 			implementation(compose.runtime)
 			implementation(compose.foundation)
 			implementation(compose.material3)
@@ -38,13 +39,27 @@ kotlin {
 			implementation(compose.components.uiToolingPreview)
 			implementation(libs.androidx.lifecycle.viewmodel)
 			implementation(libs.androidx.lifecycle.runtimeCompose)
+
+			// Icons!
+			implementation(libs.androidx.material3.iconsExtended)
+
+			// J'Fin
 			implementation(libs.jellyfin.core)
 			implementation(libs.kotlinx.serialization.json)
-			implementation(libs.androidx.navigation.compose)
-			implementation(libs.androidx.material3.iconsExtended)
+
+			// New navigation system / voyager
+			implementation(libs.voyager.navigator)
+			implementation(libs.voyager.screenModel)
+
+
+			// Old android navigation options
+//			implementation(libs.androidx.navigation.compose)
+//			implementation(libs.androidx.material3.iconsExtended)
 //			implementation(libs.androidx.navigation.fragment)
 //			implementation(libs.androidx.navigation.ui)
 //			implementation(libs.androidx.navigation.features.fragment)
+
+			// Logging
 			implementation(libs.kotlinLogging)
 			runtimeOnly(libs.slf4j.simple)
 		}
