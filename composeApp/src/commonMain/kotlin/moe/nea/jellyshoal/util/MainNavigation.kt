@@ -1,4 +1,4 @@
-package moe.nea.jellyshoal.pages
+package moe.nea.jellyshoal.util
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,8 +14,10 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
 import io.github.oshai.kotlinlogging.KotlinLogging
+import moe.nea.jellyshoal.views.screens.WelcomePage
 
-sealed interface ShoalRoute : Screen {}
+// TODO: implement https://github.com/adrielcafe/voyager/issues/497
+interface ShoalRoute : Screen {}
 
 val globalNavigationLocal =
 	staticCompositionLocalOf<TypedNavHostController<ShoalRoute>> { error("Global Navigation Scope not provided") }
@@ -27,6 +29,11 @@ class TypedNavHostController<T : Screen>(
 		navigator.push(page)
 	}
 
+	/**
+	 * **SAFETY**: this is safe assuming only navigate is ever called instead of navigator directly
+	 */
+	@Suppress("UNCHECKED_CAST")
+	val currentScreen get() = navigator.lastItem as T
 }
 
 @Composable
@@ -34,7 +41,7 @@ fun findGlobalNavController(): TypedNavHostController<ShoalRoute> {
 	return globalNavigationLocal.current
 }
 
-val logger = KotlinLogging.logger {  }
+val logger = KotlinLogging.logger { }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
