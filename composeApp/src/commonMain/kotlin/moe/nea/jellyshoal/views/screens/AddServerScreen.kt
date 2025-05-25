@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.sp
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import moe.nea.jellyshoal.data.Account
+import moe.nea.jellyshoal.data.findPreference
 import moe.nea.jellyshoal.layouts.CenterColumn
 import moe.nea.jellyshoal.util.ShoalRoute
 import moe.nea.jellyshoal.util.error.explainHttpError
@@ -31,12 +33,13 @@ import org.jellyfin.sdk.api.client.exception.InvalidStatusException
 import org.jellyfin.sdk.api.client.extensions.authenticateUserByName
 import org.jellyfin.sdk.api.operations.UserApi
 
-val logger = KotlinLogging.logger { }
 
 @Serializable
 data class AddServerScreen(
 	val serverUrl: String,
 ) : ShoalRoute {
+	val logger = KotlinLogging.logger { }
+
 	@Composable
 	override fun Content() {
 		val loginName = remember { mutableStateOf(TextFieldValue()) }
@@ -46,6 +49,7 @@ data class AddServerScreen(
 		var isSubmitting by remember { mutableStateOf(false) }
 		val navController = findGlobalNavController()
 		val scope = rememberCoroutineScope()
+		val accounts = findPreference { accounts }
 		CenterColumn {
 			Text("Adding server", fontSize = 20.sp)
 			Text("Trying to join ${serverUrl}.")
@@ -89,10 +93,12 @@ data class AddServerScreen(
 					isSubmitting = true
 					scope.launch {
 						try {
+							setError(null)
 							val userApi = UserApi(sharedJellyfinInstance.createApi(baseUrl = serverUrl))
 							val result by userApi.authenticateUserByName(loginName.value.text, password.text)
 							val token = result.accessToken!!
-							println("Saving token $token for $serverUrl!")
+							logger.info { "Saving token $token for $serverUrl!" }
+							accounts.value += Account(serverUrl, token)
 							navController.navigate(HomePage)
 						} catch (e: Exception) {
 							isSubmitting = false

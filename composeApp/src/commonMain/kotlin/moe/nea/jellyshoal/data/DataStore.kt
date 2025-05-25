@@ -10,26 +10,53 @@ expect object DataStore : IDataStore
 
 abstract class IDataStore {
 	fun createStringValue(key: String): DataValue<String> {
-		val defaultValue = ""
-		val core = createMapValueWithPrefix(key)
-		return object : DataValue<String> {
-			override fun getCurrent(): String {
-				return core.getCurrent()[key] ?: defaultValue
-			}
-
-			override fun get(): Flow<String> {
-				return core.get().map { it[key] ?: defaultValue }
-			}
-
-			override fun set(value: String) {
-				core.set(mapOf(key to value))
-			}
-		}
+		return createMapValueWithPrefix(key).mapSingle(key, { it }, { it }, "")
 	}
 
 	abstract fun createMapValueWithPrefix(prefix: String): DataValue<Map<String, String>>
 }
 
+fun <T> DataValue<Map<String, String>>.mapSingle(
+	key: String,
+	mapper: (String) -> T,
+	unmapper: (T) -> String,
+	defaultValue: T
+): DataValue<T> {
+	val core = this
+	return object : DataValue<T> {
+		override fun getCurrent(): T {
+			return core.getCurrent()[key]?.let(mapper) ?: defaultValue
+		}
+
+		override fun get(): Flow<T> {
+			return core.get().map { it[key]?.let(mapper) ?: defaultValue }
+		}
+
+		override fun set(value: T) {
+			core.set(mapOf(key to unmapper(value)))
+		}
+	}
+}
+
+fun <T> DataValue<Map<String, String>>.mapMany(
+	mapper: (Map<String, String>) -> T,
+	unmapper: (T) -> Map<String, String>,
+): DataValue<T> {
+	val core = this
+	return object : DataValue<T> {
+		override fun getCurrent(): T {
+			return core.getCurrent().let(mapper)
+		}
+
+		override fun get(): Flow<T> {
+			return core.get().map { it.let(mapper) }
+		}
+
+		override fun set(value: T) {
+			core.set(unmapper(value))
+		}
+	}
+}
 
 interface DataValue<T> {
 	fun getCurrent(): T

@@ -3,7 +3,6 @@ package moe.nea.jellyshoal.data
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.staticCompositionLocalOf
 import moe.nea.jellyshoal.util.compose.upgrade
 
