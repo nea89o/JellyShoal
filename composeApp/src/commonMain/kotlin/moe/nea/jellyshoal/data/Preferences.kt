@@ -58,5 +58,10 @@ data class Account(
 		baseUrl = server,
 		accessToken = token,
 	)
+
+	// TODO: have like a central friendly name resolution name
+	fun userFriendlyName(): String = server
+		.replace("http://", "")
+		.replace("https://", "")
 }
 

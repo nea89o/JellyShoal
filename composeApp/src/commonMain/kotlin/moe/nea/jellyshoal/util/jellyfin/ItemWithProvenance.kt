@@ -21,3 +21,6 @@ data class ItemWithProvenance(
 			)
 	}
 }
+
+fun BaseItemDto.withProvenance(account: Account) =
+	ItemWithProvenance(account, this)

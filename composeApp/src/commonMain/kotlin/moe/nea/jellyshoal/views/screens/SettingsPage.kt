@@ -30,7 +30,7 @@ fun TitledBox(
 	modifier: Modifier = Modifier,
 	borderColor: Color = MaterialTheme.colorScheme.primaryContainer,
 	content: @Composable () -> Unit,
-	) {
+) {
 
 	Box(
 		modifier = modifier
