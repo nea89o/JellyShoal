@@ -93,11 +93,11 @@ object SearchPage : ShoalRoute {
 								Column(modifier = Modifier.padding(horizontal = 16.dp)) {
 									Text(
 										text = item.item.name ?: "<missing name>",
-										style = LocalTextStyle.current.merge(fontSize = 24.sp)
+										style = MaterialTheme.typography.titleLarge
 									)
 									Text(
 										text = item.item.overview ?: "<missing overview>",
-										style = LocalTextStyle.current.merge(fontSize = 16.sp)
+										style = MaterialTheme.typography.bodyLarge
 									)
 								}
 							}
