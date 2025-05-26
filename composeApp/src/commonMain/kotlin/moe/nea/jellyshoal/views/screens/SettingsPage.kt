@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.github.oshai.kotlinlogging.KotlinLogging
+import moe.nea.jellyshoal.data.SelectedColorTheme
 import moe.nea.jellyshoal.data.findPreference
 import moe.nea.jellyshoal.layouts.DefaultSideBar
 import moe.nea.jellyshoal.util.ShoalRoute
@@ -27,12 +28,14 @@ import moe.nea.jellyshoal.util.findGlobalNavController
 fun TitledBox(
 	title: @Composable () -> Unit,
 	modifier: Modifier = Modifier,
+	borderColor: Color = MaterialTheme.colorScheme.primaryContainer,
 	content: @Composable () -> Unit,
-) {
+	) {
+
 	Box(
 		modifier = modifier
 			.border(
-				1.dp, Color.LightGray,
+				2.dp, borderColor,
 				RoundedCornerShape(
 					12.dp
 				)
@@ -48,7 +51,7 @@ fun TitledBox(
 							topEnd = 12.dp,
 						)
 					),
-				color = Color.LightGray,
+				color = borderColor,
 			) {
 				Row(
 					modifier = Modifier.padding(16.dp),
@@ -68,13 +71,14 @@ fun TitledBox(
 }
 
 object SettingsPage : ShoalRoute {
-	val logger = KotlinLogging.logger {  }
+	val logger = KotlinLogging.logger { }
+
 	@Composable
 	override fun Content() {
 		var accounts by findPreference { accounts }
 		val nav = findGlobalNavController()
 		DefaultSideBar {
-			Row {
+			Column {
 				TitledBox(
 					title = { Text("Account") },
 					modifier = Modifier.padding(16.dp),
@@ -104,6 +108,26 @@ object SettingsPage : ShoalRoute {
 								Text("Add Account")
 							}
 						}
+					}
+				}
+				TitledBox(
+					title = { Text("Colors") },
+					modifier = Modifier.padding(16.dp),
+				) {
+					var colorTheme by findPreference { colorTheme }
+
+					@Composable
+					fun theme(theme: SelectedColorTheme) {
+						Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+							RadioButton(theme == colorTheme, onClick = { colorTheme = theme })
+							Text(theme.userFriendlyName)
+						}
+					}
+
+					Column {
+						theme(SelectedColorTheme.LIGHT)
+						theme(SelectedColorTheme.DARK)
+						theme(SelectedColorTheme.SYSTEM)
 					}
 				}
 			}
