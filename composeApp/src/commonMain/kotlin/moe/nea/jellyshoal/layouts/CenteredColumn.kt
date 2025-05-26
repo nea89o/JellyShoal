@@ -1,6 +1,7 @@
 package moe.nea.jellyshoal.layouts
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -13,15 +14,17 @@ fun CenterColumn(
 	width: Dp = 350.dp,
 	content: @Composable ColumnScope.() -> Unit
 ) {
-	Column(
-		horizontalAlignment = Alignment.CenterHorizontally,
-		modifier = Modifier.fillMaxSize(),
-	) {
+	Scaffold {
 		Column(
-			verticalArrangement = Arrangement.Center,
-			modifier = Modifier.fillMaxHeight().padding(8.dp).width(width)
+			horizontalAlignment = Alignment.CenterHorizontally,
+			modifier = Modifier.fillMaxSize().padding(it),
 		) {
-			content()
+			Column(
+				verticalArrangement = Arrangement.Center,
+				modifier = Modifier.fillMaxHeight().padding(8.dp).width(width)
+			) {
+				content()
+			}
 		}
 	}
 }

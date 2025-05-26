@@ -1,9 +1,7 @@
 package moe.nea.jellyshoal.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,27 +17,62 @@ fun MovieCard(
 ) {
 	val primaryImageUrl = item.getImage(ImageType.PRIMARY)
 
-	Card(modifier = modifier.padding(8.dp).height(260.dp)) {
-		Row(modifier = Modifier.padding(16.dp).fillMaxHeight()) {
-			if (primaryImageUrl != null) {
-				AsyncImage(
-					primaryImageUrl,
-					modifier = Modifier.height(210.dp).align(Alignment.CenterVertically),
-					contentDescription = "The primary image poster for ${item.item.name}",
-				)
+	val cardHeight = 260.dp
+	val padding = 16.dp
+
+
+	val progress = item.getWatchProgress()
+
+	val progressHeight = 24.dp
+
+	Card(modifier = modifier.padding(8.dp).height(cardHeight)) {
+		Column(
+			verticalArrangement = Arrangement.SpaceBetween,
+			modifier = Modifier.fillMaxHeight()
+		) {
+			Column(modifier = Modifier.height(cardHeight - (if (progress == null) 0.dp else padding * 2 + progressHeight))) {
+				Row {
+					if (primaryImageUrl != null) {
+						AsyncImage(
+							primaryImageUrl,
+							modifier = Modifier.fillMaxHeight()
+								.align(Alignment.CenterVertically),
+							contentDescription = "The primary image poster for ${item.item.name}",
+						)
+					}
+					Column(modifier = Modifier.padding(16.dp)) {
+						Text(
+							text = item.item.name ?: "<missing name>",
+							style = MaterialTheme.typography.titleLarge
+						)
+						Text(
+							text = item.item.overview ?: "<missing overview>",
+							style = MaterialTheme.typography.bodyLarge
+						)
+					}
+				}
 			}
-			Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-				Text(
-					text = item.item.name ?: "<missing name>",
-					style = MaterialTheme.typography.titleLarge
-				)
-				Text(
-					text = item.item.overview ?: "<missing overview>",
-					style = MaterialTheme.typography.bodyLarge
-				)
+			if (progress != null) {
+				Surface(
+					color = MaterialTheme.colorScheme.surfaceVariant
+				) {
+					Row(
+						verticalAlignment = Alignment.CenterVertically,
+						modifier =
+							Modifier.padding(padding)
+								.height(progressHeight)
+					) {
+						Text(progress.current.format())
+						LinearProgressIndicator(
+							{ progress.progress },
+							modifier = Modifier.weight(1F)
+								.padding(horizontal = 8.dp)
+						)
+						Text(progress.total.format())
+					}
+				}
 			}
 		}
 	}
-
 }
 

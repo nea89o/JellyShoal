@@ -1,6 +1,7 @@
 package moe.nea.jellyshoal.views.screens
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
