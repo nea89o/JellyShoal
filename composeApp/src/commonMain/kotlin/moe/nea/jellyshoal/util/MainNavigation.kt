@@ -14,6 +14,8 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
 import io.github.oshai.kotlinlogging.KotlinLogging
+import moe.nea.jellyshoal.data.findPreference
+import moe.nea.jellyshoal.views.screens.HomePage
 import moe.nea.jellyshoal.views.screens.WelcomePage
 
 // TODO: implement https://github.com/adrielcafe/voyager/issues/497
@@ -46,7 +48,12 @@ val logger = KotlinLogging.logger { }
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun NavigationContext() {
-	Navigator(WelcomePage) { nav ->
+	val (accounts) = findPreference { accounts }
+	logger.info { "Accounts loaded: $accounts" }
+	Navigator(
+		if (accounts.isEmpty()) WelcomePage
+		else HomePage
+	) { nav ->
 		val globalNavController = TypedNavHostController<ShoalRoute>(nav)
 		Column(
 			modifier = Modifier.fillMaxSize().pointerInput(Unit) {

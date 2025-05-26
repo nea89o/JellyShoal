@@ -1,5 +1,8 @@
 package moe.nea.jellyshoal.data
 
+import moe.nea.jellyshoal.util.jellyfin.sharedJellyfinInstance
+import org.jellyfin.sdk.api.client.ApiClient
+
 class Preferences(val _store: DataStore) {
 	val testValue = _store.createStringValue("server")
 	val accounts =
@@ -26,5 +29,10 @@ class Preferences(val _store: DataStore) {
 data class Account(
 	val server: String,
 	val token: String,
-)
+) {
+	fun createApiClient(): ApiClient = sharedJellyfinInstance.createApi(
+		baseUrl = server,
+		accessToken = token,
+	)
+}
 
