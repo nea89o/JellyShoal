@@ -62,9 +62,9 @@ fun ImageOnlyMovieCard(
 				CircularProgressIndicator()
 			}
 		}
-		val seasonName = item.item.seasonName
-		if (item.item.type == BaseItemKind.EPISODE && seasonName != null) {
-			Text(seasonName, style = MaterialTheme.typography.titleMedium)
+		val seriesName = item.item.seriesName
+		if (item.item.type == BaseItemKind.EPISODE && seriesName != null) {
+			Text(seriesName, style = MaterialTheme.typography.titleMedium)
 			Text(item.item.name!!, style = MaterialTheme.typography.bodyMedium)
 		} else {
 			Text(item.item.name!!, style = MaterialTheme.typography.titleMedium)

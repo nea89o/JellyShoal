@@ -41,8 +41,13 @@ fun MovieCard(
 						)
 					}
 					Column(modifier = Modifier.padding(16.dp)) {
-						Text(
-							text = item.item.name ?: "<missing name>",
+						item.item.seriesName?.let { seriesName ->
+							Text(
+								text = "$seriesName - ${item.item.name}",
+								style = MaterialTheme.typography.titleLarge
+							)
+						} ?: Text(
+							text = item.item.name!!,
 							style = MaterialTheme.typography.titleLarge
 						)
 						Text(
