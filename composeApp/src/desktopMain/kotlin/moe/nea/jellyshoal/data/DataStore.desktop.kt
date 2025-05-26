@@ -74,7 +74,7 @@ actual object DataStore :
 					val p = filterProps(propsD)
 					val propsM = propsD.toMutableMap()
 					for (key in p.keys) {
-						if (key in value) {
+						if (key !in value) {
 							propsM.remove(key)
 						}
 					}
