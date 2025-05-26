@@ -28,7 +28,7 @@ fun ImageOnlyMovieCard(
 	val progress = item.getWatchProgress()
 	val imgHeight = 300.dp
 
-	Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(16.dp)) {
+	Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.padding(16.dp)) {
 		SubcomposeAsyncImage(
 			item.getImage(ImageType.PRIMARY),
 			modifier = Modifier.height(imgHeight),
@@ -52,6 +52,7 @@ fun ImageOnlyMovieCard(
 								LinearProgressIndicator(
 									progress = { progress.progress },
 									modifier = Modifier.fillMaxWidth(),
+									drawStopIndicator = {}
 								)
 							}
 						}
