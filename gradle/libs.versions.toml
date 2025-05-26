@@ -10,6 +10,7 @@ androidx-core = "1.16.0"
 androidx-espresso = "3.6.1"
 androidx-lifecycle = "2.9.0"
 androidx-testExt = "1.2.1"
+coilCompose = "3.2.0"
 composeHotReload = "1.0.0-alpha10"
 composeMultiplatform = "1.8.1"
 directories = "26"
@@ -32,6 +33,8 @@ androidx-navigation-features-fragment = { module = "androidx.navigation:navigati
 androidx-navigation-ui = { module = "androidx.navigation:navigation-ui", version.ref = "androidNavigation" }
 androidx-navigation-fragment = { module = "androidx.navigation:navigation-fragment", version.ref = "androidNavigation" }
 androidx-material3-iconsExtended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilCompose" }
 directories = { module = "dev.dirs:directories", version.ref = "directories" }
 kotlinLogging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlinLogging" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

@@ -51,7 +51,8 @@ kotlin {
 			implementation(libs.voyager.navigator)
 			implementation(libs.voyager.screenModel)
 
-
+			implementation(libs.coil.compose)
+			implementation(libs.coil.network.okhttp)
 			// Old android navigation options
 //			implementation(libs.androidx.navigation.compose)
 //			implementation(libs.androidx.material3.iconsExtended)
