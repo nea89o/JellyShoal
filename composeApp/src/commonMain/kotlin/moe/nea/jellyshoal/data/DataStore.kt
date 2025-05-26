@@ -16,6 +16,16 @@ abstract class IDataStore {
 	abstract fun createMapValueWithPrefix(prefix: String): DataValue<Map<String, String>>
 }
 
+inline fun <reified E : Enum<E>> IDataStore.createEnumValue(key: String, defaultValue: E): DataValue<E> {
+	return createMapValueWithPrefix(key)
+		.mapSingle(
+			key,
+			::enumValueOf,
+			{ it.name },
+			defaultValue
+		)
+}
+
 fun <T> DataValue<Map<String, String>>.mapSingle(
 	key: String,
 	mapper: (String) -> T,

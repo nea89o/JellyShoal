@@ -1,7 +1,6 @@
 package moe.nea.jellyshoal.views.screens
 
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -19,6 +18,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.Serializable
 import moe.nea.jellyshoal.build.BuildConfig
+import moe.nea.jellyshoal.components.ImageOnlyMovieCard
 import moe.nea.jellyshoal.components.MovieCard
 import moe.nea.jellyshoal.data.Account
 import moe.nea.jellyshoal.data.findPreference
@@ -47,6 +47,7 @@ object HomePage : ShoalRoute {
 		}
 
 		DefaultSideBar {
+			val useCompactFrames = findPreference { movieCardStyle }.value.useCompactOnHomeScreen
 			Column(modifier = Modifier.fillMaxSize()) {
 				Text(
 					"Welcome to ${BuildConfig.BRAND}", style = MaterialTheme.typography.headlineLarge,
@@ -68,7 +69,11 @@ object HomePage : ShoalRoute {
 							} else {
 								LazyRow(modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 16.dp)) {
 									items(items) { resume ->
-										MovieCard(resume, modifier = Modifier.width(740.dp))
+										if (useCompactFrames) {
+											ImageOnlyMovieCard(resume)
+										} else {
+											MovieCard(resume, modifier = Modifier.width(720.dp))
+										}
 									}
 								}
 							}

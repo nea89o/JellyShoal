@@ -8,8 +8,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -18,6 +21,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.github.oshai.kotlinlogging.KotlinLogging
+import moe.nea.jellyshoal.data.MovieCardStyle
+import moe.nea.jellyshoal.data.NamedEnum
 import moe.nea.jellyshoal.data.SelectedColorTheme
 import moe.nea.jellyshoal.data.findPreference
 import moe.nea.jellyshoal.layouts.DefaultSideBar
@@ -110,27 +115,51 @@ object SettingsPage : ShoalRoute {
 						}
 					}
 				}
-				TitledBox(
-					title = { Text("Colors") },
-					modifier = Modifier.padding(16.dp),
-				) {
-					var colorTheme by findPreference { colorTheme }
-
-					@Composable
-					fun theme(theme: SelectedColorTheme) {
-						Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-							RadioButton(theme == colorTheme, onClick = { colorTheme = theme })
-							Text(theme.userFriendlyName)
+				ConfigureEnum(
+					title = {
+						Row {
+							Icon(Icons.Outlined.Palette, contentDescription = null)
+							Text("Colors")
 						}
-					}
+					},
+					findPreference { colorTheme },
+					SelectedColorTheme.entries
+				)
+				ConfigureEnum(
+					title = {
+						Row {
+							Icon(Icons.Outlined.Image, contentDescription = null)
+							Text("Card Style")
+						}
+					},
+					findPreference { movieCardStyle },
+					MovieCardStyle.entries
+				)
+			}
+		}
+	}
+}
 
-					Column {
-						theme(SelectedColorTheme.LIGHT)
-						theme(SelectedColorTheme.DARK)
-						theme(SelectedColorTheme.SYSTEM)
-					}
+@Composable
+fun <E> ConfigureEnum(
+	title: @Composable () -> Unit,
+	state: MutableState<E>,
+	allValues: List<E>,
+) where E : NamedEnum {
+	var selected by state
+	TitledBox(
+		title = title,
+		modifier = Modifier.padding(16.dp),
+	) {
+
+		Column {
+			allValues.forEach { option ->
+				Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+					RadioButton(option == selected, onClick = { selected = option })
+					Text(option.userFriendlyName)
 				}
 			}
 		}
 	}
 }
+

@@ -28,16 +28,32 @@ class Preferences(val _store: DataStore) {
 				},
 			)
 	val colorTheme =
-		_store.createMapValueWithPrefix("colorTheme")
-			.mapSingle(
-				"colorTheme",
-				::enumValueOf,
-				SelectedColorTheme::name,
-				SelectedColorTheme.SYSTEM,
-			)
+		_store.createEnumValue(
+			"ui.colorTheme", SelectedColorTheme.SYSTEM,
+		)
+
+	val movieCardStyle = _store.createEnumValue(
+		"ui.movieCard.style",
+		MovieCardStyle.DEFAULT
+	)
 }
 
-enum class SelectedColorTheme(val userFriendlyName: String) {
+enum class MovieCardStyle(
+	override val userFriendlyName: String,
+) : NamedEnum {
+	DEFAULT("Always use full cards"),
+	COMPACT_ALWAYS("Always use compact cards"),
+	COMPACT_HOME("Use compact cards only on the homescreen"),
+	;
+
+	val useCompactOnHomeScreen get() = this != DEFAULT
+}
+
+interface NamedEnum {
+	val userFriendlyName: String
+}
+
+enum class SelectedColorTheme(override val userFriendlyName: String) : NamedEnum {
 	LIGHT("Light Mode"), DARK("Dark Mode"), SYSTEM("Use System Color Theme"),
 	;
 
