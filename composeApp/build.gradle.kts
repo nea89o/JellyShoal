@@ -11,6 +11,7 @@ plugins {
 	alias(libs.plugins.composeCompiler)
 	alias(libs.plugins.composeHotReload)
 	id("com.github.gmazzo.buildconfig") version "5.5.0"
+	id("com.google.devtools.ksp") version "2.1.21-2.0.1"
 }
 kotlin {
 	androidTarget {
@@ -71,6 +72,10 @@ kotlin {
 			implementation(compose.desktop.currentOs)
 			implementation(libs.kotlinx.coroutinesSwing)
 			implementation(libs.directories)
+
+			implementation("uk.co.caprica:vlcj:4.11.0")
+
+			implementation("com.google.auto.service:auto-service-annotations:1.1.1")
 		}
 		androidMain.dependencies {
 			implementation(compose.preview)
@@ -78,13 +83,24 @@ kotlin {
 		}
 	}
 }
+
+//configurations.forEach { println(it.name) }
+
 repositories {
 	this.mavenCentral()
 	this.google()
 	this.jetbrainsCompose()
+	this.maven("https://jitpack.io") {
+		name = "jitpack"
+		content {
+			includeGroupByRegex("(io|com)\\.github\\..+")
+		}
+	}
 }
 
 dependencies {
+	"kspDesktop"("dev.zacsweers.autoservice:auto-service-ksp:1.2.0")
+
 	debugImplementation(compose.uiTooling)
 }
 val versionName = "${project.version}"

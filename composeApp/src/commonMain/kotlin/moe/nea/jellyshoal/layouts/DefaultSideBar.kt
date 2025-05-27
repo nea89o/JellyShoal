@@ -62,7 +62,7 @@ fun DefaultSideBar(
 			// TODO: janky hack, mate (this is not what scaffold is for, really, we should be defining the colours another way)
 			Scaffold(
 				content = { paddingValues ->
-					Row(modifier = Modifier.padding(paddingValues)) {
+					Column(modifier = Modifier.padding(paddingValues)) {
 						content()
 					}
 				}

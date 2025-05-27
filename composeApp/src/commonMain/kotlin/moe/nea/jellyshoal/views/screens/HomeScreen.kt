@@ -26,7 +26,8 @@ import moe.nea.jellyshoal.layouts.DefaultSideBar
 import moe.nea.jellyshoal.util.ShoalRoute
 import moe.nea.jellyshoal.util.jellyfin.ItemWithProvenance
 import moe.nea.jellyshoal.util.jellyfin.withProvenance
-import org.jellyfin.sdk.api.operations.ItemsApi
+import org.jellyfin.sdk.api.client.extensions.itemsApi
+import org.jellyfin.sdk.api.client.extensions.tvShowsApi
 
 @Serializable
 object HomePage : ShoalRoute {
@@ -35,14 +36,23 @@ object HomePage : ShoalRoute {
 	override fun Content() {
 		val accounts by findPreference { accounts }
 		val resumeItems = remember { mutableStateMapOf<Account, List<ItemWithProvenance>>() }
+		val nextUpItems = remember { mutableStateMapOf<Account, List<ItemWithProvenance>>() }
 		accounts.map { account ->
 			LaunchedEffect(account) {
-				val api = ItemsApi(account.createApiClient())
-				val results = api.getResumeItems(userId = null)
+				val result = account.createApiClient().itemsApi
+					.getResumeItems(userId = null)
 					.content
 					.items
 					.map { it.withProvenance(account) }
-				resumeItems.put(account, results)
+				resumeItems.put(account, result)
+			}
+			LaunchedEffect(account) {
+				val result = account.createApiClient().tvShowsApi
+					.getNextUp(userId = null)
+					.content
+					.items
+					.map { it.withProvenance(account) }
+				nextUpItems.put(account, result)
 			}
 		}
 

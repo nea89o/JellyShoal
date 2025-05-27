@@ -38,13 +38,15 @@ data class ItemWithProvenance(
 	}
 
 	fun getImage(
-		type: ImageType
+		type: ImageType,
+		highQuality: Boolean = false,
 	): String? {
 		if (type !in (item.imageTags ?: emptyMap())) return null
 		return ImageApi(provenance.createApiClient())
 			.getItemImageUrl(
 				item.id,
 				imageType = type,
+				quality = if (highQuality) 100 else null,
 			)
 	}
 }

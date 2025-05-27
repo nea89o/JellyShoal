@@ -7,7 +7,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import moe.nea.jellyshoal.util.findGlobalNavController
 import moe.nea.jellyshoal.util.jellyfin.ItemWithProvenance
+import moe.nea.jellyshoal.views.screens.MovieOverviewScreen
 import org.jellyfin.sdk.model.api.ImageType
 
 @Composable
@@ -22,10 +24,13 @@ fun MovieCard(
 
 
 	val progress = item.getWatchProgress()
-
+	val nav = findGlobalNavController()
 	val progressHeight = 24.dp
 
-	Card(modifier = modifier.padding(8.dp).height(cardHeight)) {
+	Card(modifier = modifier.padding(8.dp).height(cardHeight),
+		onClick = {
+			nav.navigate(MovieOverviewScreen.from(item))
+		}) {
 		Column(
 			verticalArrangement = Arrangement.SpaceBetween,
 			modifier = Modifier.fillMaxHeight()
