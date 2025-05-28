@@ -1,5 +1,6 @@
 package moe.nea.jellyshoal.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
@@ -15,7 +16,9 @@ import androidx.compose.ui.unit.times
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
+import moe.nea.jellyshoal.util.findGlobalNavController
 import moe.nea.jellyshoal.util.jellyfin.ItemWithProvenance
+import moe.nea.jellyshoal.views.screens.MovieOverviewScreen
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ImageType
 
@@ -28,10 +31,17 @@ fun ImageOnlyMovieCard(
 	val progress = item.getWatchProgress()
 	val imgHeight = 300.dp
 
-	Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier.padding(16.dp)) {
+	Column(
+		horizontalAlignment = Alignment.CenterHorizontally,
+		modifier = modifier.padding(16.dp),
+	) {
+		val nav = findGlobalNavController()
 		SubcomposeAsyncImage(
 			item.getImage(ImageType.PRIMARY),
-			modifier = Modifier.height(imgHeight),
+			modifier = Modifier.height(imgHeight)
+				.clickable {
+					nav.navigate(MovieOverviewScreen(item.provenance, item.item.id))
+				},
 			contentDescription = item.item.name,
 		) {
 			val state by painter.state.collectAsState()

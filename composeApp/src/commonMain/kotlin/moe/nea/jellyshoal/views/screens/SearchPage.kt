@@ -22,6 +22,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
+import moe.nea.jellyshoal.components.ImageOnlyMovieCard
 import moe.nea.jellyshoal.components.MovieCard
 import moe.nea.jellyshoal.data.findPreference
 import moe.nea.jellyshoal.layouts.DefaultSideBar
@@ -79,9 +80,14 @@ object SearchPage : ShoalRoute {
 						updateSearch()
 					}),
 				)
+				val useCompactCards = findPreference { movieCardStyle }.value.useCompactInGeneral
 				LazyColumn {
 					items(results) { item ->
-						MovieCard(item, modifier = Modifier.fillMaxWidth())
+						if (useCompactCards) {
+							ImageOnlyMovieCard(item)
+						} else {
+							MovieCard(item, modifier = Modifier.fillMaxWidth())
+						}
 					}
 				}
 			}

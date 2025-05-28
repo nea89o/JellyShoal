@@ -1,6 +1,5 @@
 package moe.nea.jellyshoal.views.screens
 
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height

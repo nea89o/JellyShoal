@@ -47,6 +47,7 @@ enum class MovieCardStyle(
 	;
 
 	val useCompactOnHomeScreen get() = this != DEFAULT
+	val useCompactInGeneral get() = this == COMPACT_ALWAYS
 }
 
 interface NamedEnum {
