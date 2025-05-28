@@ -7,8 +7,24 @@
     ...
   }:
     flake-utils.lib.eachDefaultSystem (system: let
-      overlays = [];
-      pkgs = import nixpkgs {inherit system overlays;};
+      overlays = [
+        (prev: final: {
+        })
+      ];
+      pkgs = import nixpkgs {
+        inherit system overlays;
+        config.android_sdk.accept_license = true;
+        config.allowUnfree = true;
+      };
+      androidComposition = pkgs.androidenv.composeAndroidPackages {
+        #   build-tools;35.0.0 Android SDK Build-Tools 35
+        # platforms;android-35 Android SDK Platform 35
+
+        includeNDK = false;
+        platformVersions = ["35"];
+        buildToolsVersions = ["35.0.0"];
+        abiVersions = ["x86_64" "armeabi-v7a"];
+      };
     in rec {
       formatter = pkgs.alejandra;
       packages = {
@@ -16,6 +32,12 @@
         x11 = pkgs.xorg.libX11;
       };
       devShells.default = pkgs.mkShell {
+        buildInputs = [
+          pkgs.android-tools
+          androidComposition.androidsdk
+        ];
+
+        ANDROID_HOME = "${androidComposition.androidsdk}";
         VLC_LIBRARY_PATH = pkgs.lib.makeLibraryPath [packages.libvlc packages.x11];
       };
     });

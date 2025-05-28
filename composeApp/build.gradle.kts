@@ -85,6 +85,12 @@ kotlin {
 	}
 }
 
+val extraNatives by configurations.creating {
+	isCanBeResolved = true
+	isCanBeDeclared = true
+	isCanBeConsumed = false // Should this be false?
+}
+
 //configurations.forEach { println(it.name) }
 
 repositories {
@@ -103,6 +109,11 @@ dependencies {
 	"kspDesktop"("dev.zacsweers.autoservice:auto-service-ksp:1.2.0")
 
 	debugImplementation(compose.uiTooling)
+	// TODO: do multiple distros for each os / arch combo
+	extraNatives(compose.desktop.linux_x64)
+	extraNatives(compose.desktop.macos_x64)
+	extraNatives(compose.desktop.macos_arm64)
+	extraNatives(compose.desktop.windows_x64)
 }
 val versionName = "${project.version}"
 
@@ -144,6 +155,11 @@ android {
 val allDesktopJars by tasks.registering(Copy::class) {
 	from(configurations.named("desktopRuntimeClasspath"))
 	from(tasks.named("desktopJar"))
+	from(extraNatives)
 	into(layout.buildDirectory.dir("allDesktopJars"))
-	this.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	doFirst {
+		configurations.named("desktopRuntimeClasspath").get().files.forEach{
+			println(it)
+		}
+	}
 }
