@@ -61,13 +61,8 @@ data class MovieOverviewScreen(
 							// TODO: check progress and show a resume button instead
 							Button(
 								onClick = {
-									// TODO: actually select stream
 									nav.navigate(
-										PlayVideoScreen(
-											item.provenance.createApiClient()
-												.videosApi
-												.getVideoStreamUrl(itemId = itemId)
-										)
+										PlayVideoScreen(item)
 									)
 								}
 							) {

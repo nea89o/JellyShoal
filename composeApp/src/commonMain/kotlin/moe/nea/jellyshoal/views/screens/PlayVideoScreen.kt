@@ -5,14 +5,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import moe.nea.jellyshoal.components.VideoPlayer
 import moe.nea.jellyshoal.util.ShoalRoute
+import moe.nea.jellyshoal.util.jellyfin.ItemWithProvenance
+import org.jellyfin.sdk.api.client.extensions.videosApi
 
 
 class PlayVideoScreen(
-	val url: String // TODO: load the actual item to retrieve get next item and update play percentage
+	val item: ItemWithProvenance
 ) : ShoalRoute {
 	@Composable
 	override fun Content() {
 		// TODO: Add back button on hover
-		VideoPlayer(url, modifier = Modifier.fillMaxSize())
+		VideoPlayer(
+			item.provenance.createApiClient()
+				.videosApi
+				.getVideoStreamUrl(
+					itemId = item.item.id,
+					container = "mkv",
+					static = true,
+				),
+			modifier = Modifier.fillMaxSize()
+		)
 	}
 }

@@ -16,12 +16,15 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import moe.nea.jellyshoal.util.vlc.SkiaBitmapFormatCallback
 import moe.nea.jellyshoal.util.vlc.SkiaBitmapRenderCallback
 import org.jetbrains.skia.Bitmap
+import uk.co.caprica.vlcj.binding.lib.LibVlc
 import uk.co.caprica.vlcj.binding.support.init.LinuxNativeInit
 import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil
 import uk.co.caprica.vlcj.factory.discovery.provider.DiscoveryDirectoryProvider
 import uk.co.caprica.vlcj.media.Media
 import uk.co.caprica.vlcj.media.MediaEventAdapter
 import uk.co.caprica.vlcj.media.MediaParsedStatus
+import uk.co.caprica.vlcj.player.base.MediaPlayer
+import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.base.State
 import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent
 import uk.co.caprica.vlcj.player.component.MediaPlayerSpecs
@@ -39,10 +42,12 @@ actual fun VideoPlayer(
 	val player = remember { mediaPlayerComponent.mediaPlayer() }
 	LaunchedEffect(url) {
 		logger.info { "Loading url $url" }
-		player.media().play(url)
-		player.media().events().addMediaEventListener(object : MediaEventAdapter() {
+		player.events().addMediaEventListener(object : MediaEventAdapter() {
 			override fun mediaStateChanged(media: Media?, newState: State?) {
 				logger.info { "Media player state changed to $newState" }
+				LibVlc.libvlc_errmsg()?.let { errorMsg ->
+					logger.error { "Media player errored: $errorMsg" }
+				}
 			}
 
 			override fun mediaParsedChanged(
@@ -52,6 +57,7 @@ actual fun VideoPlayer(
 				logger.info { "Media player parsed to $newStatus" }
 			}
 		})
+		player.media().start(url)
 		// TODO: can vlc4j seek?
 	}
 	DisposableEffect(Unit) {
@@ -133,7 +139,7 @@ fun findMediaPlayerComponent(bitmapState: MutableState<Bitmap?>): CallbackMediaP
 			.withRenderCallback(SkiaBitmapRenderCallback {
 				val lastLastCall = lastCall
 				lastCall = System.currentTimeMillis()
-				logger.trace { "Render frame in ${lastCall - lastLastCall}ms" }
+				logger.info { "Render frame in ${lastCall - lastLastCall}ms" }
 				bitmapState.value = it.setImmutable()
 			})
 	)

@@ -8,5 +8,4 @@ import androidx.compose.ui.Modifier
 expect fun VideoPlayer(
 	url: String,
 	modifier: Modifier = Modifier,
-
 )
