@@ -85,7 +85,7 @@ kotlin {
 	}
 }
 
-configurations.forEach { println(it.name) }
+//configurations.forEach { println(it.name) }
 
 repositories {
 	this.mavenCentral()
