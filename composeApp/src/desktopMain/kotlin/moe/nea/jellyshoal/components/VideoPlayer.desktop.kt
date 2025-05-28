@@ -72,6 +72,11 @@ actual fun VideoPlayer(
 				val screenAspectRatio = size.width / size.height
 				val scaledImageSize: IntSize
 				val imageOffset: IntOffset
+				logger.trace {
+					val lastLastCall = lastCall
+					lastCall = System.currentTimeMillis()
+					"Received new frame after ${lastCall - lastLastCall}ms"
+				}
 
 				if (imageAspectRatio > screenAspectRatio) {
 					// The image is wider than the screen
@@ -136,9 +141,6 @@ fun findMediaPlayerComponent(bitmapState: MutableState<Bitmap?>): CallbackMediaP
 		MediaPlayerSpecs.callbackMediaPlayerSpec()
 			.withBufferFormatCallback(SkiaBitmapFormatCallback)
 			.withRenderCallback(SkiaBitmapRenderCallback {
-				val lastLastCall = lastCall
-				lastCall = System.currentTimeMillis()
-				logger.info { "Render frame in ${lastCall - lastLastCall}ms" }
 				bitmapState.value = it.setImmutable()
 			})
 	)

@@ -1,3 +1,4 @@
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.jetbrainsCompose
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -90,6 +91,7 @@ kotlin {
 		androidMain.dependencies {
 			implementation(compose.preview)
 			implementation(libs.androidx.activity.compose)
+			implementation(libs.androidx.core.ktx)
 		}
 	}
 }
@@ -119,7 +121,25 @@ repositories {
 		}
 	}
 }
-
+compose.desktop {
+	application {
+		mainClass = "moe.nea.jellyshoal.MainKt"
+		this.nativeDistributions {
+			this.targetFormats(
+				TargetFormat.Msi,
+				TargetFormat.AppImage
+			)
+		}
+		this.buildTypes {
+			this.release {
+				this.proguard {
+					obfuscate.set(false)
+					isEnabled.set(false)
+				}
+			}
+		}
+	}
+}
 dependencies {
 	"kspDesktop"(libs.auto.service.ksp)
 
@@ -161,9 +181,14 @@ android {
 			isMinifyEnabled = false
 		}
 	}
+	composeOptions {
+		kotlinCompilerExtensionVersion = libs.versions.composeMultiplatform.get()
+	}
 	compileOptions {
 		sourceCompatibility = JavaVersion.VERSION_11
 		targetCompatibility = JavaVersion.VERSION_11
+	}
+	buildFeatures { compose = true
 	}
 }
 

@@ -37,7 +37,7 @@
           androidComposition.androidsdk
         ];
 
-        ANDROID_HOME = "${androidComposition.androidsdk}";
+        ANDROID_HOME = "${androidComposition.androidsdk}/libexec/android-sdk/";
         VLC_LIBRARY_PATH = pkgs.lib.makeLibraryPath [packages.libvlc packages.x11];
       };
     });
