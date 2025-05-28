@@ -82,7 +82,6 @@ fun ImageOnlyMovieCard(
 				item.item.productionYear.toString(),
 				style = MaterialTheme.typography.bodyMedium,
 			)
-
 		}
 	}
 }

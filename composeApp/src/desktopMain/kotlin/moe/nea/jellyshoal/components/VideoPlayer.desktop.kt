@@ -1,18 +1,25 @@
 package moe.nea.jellyshoal.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asComposeImageBitmap
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import com.google.auto.service.AutoService
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.delay
 import moe.nea.jellyshoal.util.vlc.SkiaBitmapFormatCallback
 import moe.nea.jellyshoal.util.vlc.SkiaBitmapRenderCallback
 import org.jetbrains.skia.Bitmap
@@ -23,14 +30,13 @@ import uk.co.caprica.vlcj.factory.discovery.provider.DiscoveryDirectoryProvider
 import uk.co.caprica.vlcj.media.Media
 import uk.co.caprica.vlcj.media.MediaEventAdapter
 import uk.co.caprica.vlcj.media.MediaParsedStatus
-import uk.co.caprica.vlcj.player.base.MediaPlayer
-import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.base.State
 import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent
 import uk.co.caprica.vlcj.player.component.MediaPlayerSpecs
 
 private val logger = KotlinLogging.logger {}
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 actual fun VideoPlayer(
 	url: String,
@@ -39,6 +45,13 @@ actual fun VideoPlayer(
 	val bitmap = remember { mutableStateOf<Bitmap?>(null) }
 	val mediaPlayerComponent = remember { findMediaPlayerComponent(bitmap) }
 	val player = remember { mediaPlayerComponent.mediaPlayer() }
+	var lastActivityGeneration by remember { mutableStateOf(0L) }
+	var isOverlayVisible by remember { mutableStateOf(true) }
+	LaunchedEffect(lastActivityGeneration) {
+		delay(2000)
+		isOverlayVisible = false
+	}
+
 	LaunchedEffect(url) {
 		logger.info { "Loading url $url" }
 		player.events().addMediaEventListener(object : MediaEventAdapter() {
@@ -65,7 +78,14 @@ actual fun VideoPlayer(
 			player.release()
 		}
 	}
-	Box(Modifier.background(Color.Black).fillMaxSize()) {
+	Box(
+		modifier.background(Color.Black)
+			.fillMaxSize()
+			.onPointerEvent(PointerEventType.Move) {
+				isOverlayVisible = true
+				lastActivityGeneration = System.currentTimeMillis()
+			}
+	) {
 		Canvas(modifier = Modifier.fillMaxSize()) {
 			bitmap.value?.let { bmp ->
 				val imageAspectRatio = bmp.width.toFloat() / bmp.height.toFloat()
@@ -107,6 +127,24 @@ actual fun VideoPlayer(
 					dstOffset = imageOffset,
 					dstSize = scaledImageSize,
 				)
+			}
+		}
+		AnimatedVisibility(
+			isOverlayVisible,
+			modifier = Modifier.fillMaxSize(),
+			enter = fadeIn(animationSpec = tween(durationMillis = 200)),
+			exit = fadeOut(animationSpec = tween(durationMillis = 600)),
+		) {
+			Column(
+				verticalArrangement = Arrangement.SpaceBetween,
+				modifier = Modifier.matchParentSize(),
+			) {
+				Row { // Top Row
+					Text("This is on top", color = Color.White)
+				}
+				Row { // Bottom Row
+					Text("This is on bottom", color = Color.White)
+				}
 			}
 		}
 	}
