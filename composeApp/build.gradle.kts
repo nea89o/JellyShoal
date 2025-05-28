@@ -74,9 +74,9 @@ kotlin {
 			implementation(libs.kotlinx.coroutinesSwing)
 			implementation(libs.directories)
 
-			implementation("uk.co.caprica:vlcj:4.11.0")
+			implementation(libs.vlcj)
 
-			implementation("com.google.auto.service:auto-service-annotations:1.1.1")
+			implementation(libs.autoServiceAnnotations)
 		}
 		androidMain.dependencies {
 			implementation(compose.preview)
