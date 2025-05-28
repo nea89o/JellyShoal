@@ -1,9 +1,9 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.jetbrainsCompose
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
+	`java-base`
 	alias(libs.plugins.kotlinMultiplatform)
 	alias(libs.plugins.kotlinSerialization)
 	alias(libs.plugins.androidApplication)
@@ -13,6 +13,7 @@ plugins {
 	id("com.github.gmazzo.buildconfig") version "5.5.0"
 	id("com.google.devtools.ksp") version "2.1.21-2.0.1"
 }
+
 kotlin {
 	androidTarget {
 		@OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -84,7 +85,7 @@ kotlin {
 	}
 }
 
-//configurations.forEach { println(it.name) }
+configurations.forEach { println(it.name) }
 
 repositories {
 	this.mavenCentral()
@@ -113,17 +114,6 @@ buildConfig {
 	buildConfigField<String>("PUBLISHER", "Linnea Gräf")
 }
 
-compose.desktop {
-	application {
-		mainClass = "moe.nea.jellyshoal.MainKt"
-
-		nativeDistributions {
-			targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-			packageName = "moe.nea.jellyshoal"
-			packageVersion = versionName
-		}
-	}
-}
 android {
 	namespace = "moe.nea.jellyshoal"
 	compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -149,4 +139,11 @@ android {
 		sourceCompatibility = JavaVersion.VERSION_11
 		targetCompatibility = JavaVersion.VERSION_11
 	}
+}
+
+val allDesktopJars by tasks.registering(Copy::class) {
+	from(configurations.named("desktopRuntimeClasspath"))
+	from(tasks.named("desktopJar"))
+	into(layout.buildDirectory.dir("allDesktopJars"))
+	this.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
