@@ -31,6 +31,10 @@ class TypedNavHostController<T : Screen>(
 		navigator.push(page)
 	}
 
+	fun goBack() {
+		navigator.pop()
+	}
+
 	/**
 	 * **SAFETY**: this is safe assuming only navigate is ever called instead of navigator directly
 	 */

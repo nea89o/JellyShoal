@@ -1,12 +1,10 @@
 package moe.nea.jellyshoal.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.Surface
+import androidx.compose.foundation.onClick
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -15,16 +13,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.google.auto.service.AutoService
 import io.github.oshai.kotlinlogging.KotlinLogging
+import moe.nea.jellyshoal.util.findGlobalNavController
 import uk.co.caprica.vlcj.binding.support.init.LinuxNativeInit
 import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil
 import uk.co.caprica.vlcj.factory.discovery.provider.DiscoveryDirectoryProvider
+import uk.co.caprica.vlcj.media.Media
+import uk.co.caprica.vlcj.media.MediaEventAdapter
+import uk.co.caprica.vlcj.media.MediaParsedStatus
+import uk.co.caprica.vlcj.player.base.State
 import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent
 
 val logger = KotlinLogging.logger {}
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 actual fun VideoPlayer(
 	url: String,
@@ -36,6 +39,18 @@ actual fun VideoPlayer(
 	LaunchedEffect(url) {
 		logger.info { "Loading url $url" }
 		player.media().play(url)
+		player.media().events().addMediaEventListener(object : MediaEventAdapter() {
+			override fun mediaStateChanged(media: Media?, newState: State?) {
+				logger.info { "Media player state changed to $newState" }
+			}
+
+			override fun mediaParsedChanged(
+				media: Media?,
+				newStatus: MediaParsedStatus?
+			) {
+				logger.info { "Media player parsed to $newStatus" }
+			}
+		})
 		// TODO: can vlc4j seek?
 	}
 	DisposableEffect(Unit) {
@@ -46,13 +61,25 @@ actual fun VideoPlayer(
 	}
 	Column(Modifier.background(Color.Black).fillMaxSize()) {
 		// TODO: figure out why this one pixel needs to be here
-		Text("", modifier = Modifier.size(1.dp))
-		SwingPanel(
-			factory = factory,
-			background = Color.Black,
-			modifier = modifier.fillMaxSize(),
-			update = {}
-		)
+		Column {
+			val nav = findGlobalNavController()
+			Text(
+				"Go Back",
+				color = Color.White,
+				modifier = Modifier.onClick(
+					enabled = true,
+					onClick = {
+//						player.controls().setTime(1.minutes.inWholeMilliseconds)
+						nav.goBack()
+					})
+			)
+			SwingPanel(
+				factory = factory,
+				background = Color.Blue,
+				modifier = modifier.fillMaxSize(),
+				update = {}
+			)
+		}
 	}
 }
 
