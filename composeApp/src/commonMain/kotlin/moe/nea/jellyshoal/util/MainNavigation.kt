@@ -47,7 +47,7 @@ fun findGlobalNavController(): TypedNavHostController<ShoalRoute> {
 	return globalNavigationLocal.current
 }
 
-val logger = KotlinLogging.logger { }
+private val logger = KotlinLogging.logger { }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
