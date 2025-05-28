@@ -23,6 +23,15 @@ kotlin {
 	}
 
 	compilerOptions {
+		if (project.findProperty("jellyshoal.enableComposeCompilerReports") == "true") { // Collect metrics
+			val metricsDirectory = layout.buildDirectory.dir("compose_metrics").get().asFile.absoluteFile
+			freeCompilerArgs.addAll(
+				"-P",
+				"plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=$metricsDirectory",
+				"-P",
+				"plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=$metricsDirectory",
+			)
+		}
 		freeCompilerArgs.add("-Xallow-kotlin-package")
 	}
 

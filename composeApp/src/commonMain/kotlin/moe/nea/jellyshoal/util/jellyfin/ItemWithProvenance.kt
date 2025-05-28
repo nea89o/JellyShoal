@@ -1,5 +1,6 @@
 package moe.nea.jellyshoal.util.jellyfin
 
+import androidx.compose.runtime.Immutable
 import moe.nea.jellyshoal.data.Account
 import org.jellyfin.sdk.api.operations.ImageApi
 import org.jellyfin.sdk.model.api.BaseItemDto
@@ -25,6 +26,7 @@ data class MovieProgress(
 	val progress: Float = current.ticks.toFloat() / total.ticks.toFloat()
 }
 
+@Immutable
 data class ItemWithProvenance(
 	val provenance: Account,
 	val item: BaseItemDto,

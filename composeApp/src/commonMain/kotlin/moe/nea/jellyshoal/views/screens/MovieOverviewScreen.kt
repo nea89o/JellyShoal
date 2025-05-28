@@ -18,7 +18,6 @@ import moe.nea.jellyshoal.util.findGlobalNavController
 import moe.nea.jellyshoal.util.jellyfin.ItemWithProvenance
 import moe.nea.jellyshoal.util.jellyfin.withProvenance
 import org.jellyfin.sdk.api.client.extensions.userLibraryApi
-import org.jellyfin.sdk.api.client.extensions.videosApi
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.ImageType
 

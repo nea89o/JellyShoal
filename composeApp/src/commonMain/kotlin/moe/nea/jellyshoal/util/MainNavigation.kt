@@ -7,9 +7,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerButton
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.pointerInput
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.CurrentScreen
 import cafe.adriel.voyager.navigator.Navigator
@@ -60,18 +57,19 @@ fun NavigationContext() {
 	) { nav ->
 		val globalNavController = TypedNavHostController<ShoalRoute>(nav)
 		Column(
-			modifier = Modifier.fillMaxSize().pointerInput(Unit) {
-				awaitPointerEventScope {
-					while (true) {
-						val event = awaitPointerEvent()
-						if (event.type != PointerEventType.Press) continue
-						if (event.button.isBackButtonFixed && event.type == PointerEventType.Press) {
-							logger.info { "Queued back event from mouse back press" }
-							globalNavController.navigator.pop()
-						}
-					}
-				}
-			}
+			modifier = Modifier.fillMaxSize()
+//				.pointerInput(Unit) { TODO: expect/actual this to add in the back button
+//				awaitPointerEventScope {
+//					while (true) {
+//						val event = awaitPointerEvent()
+//						if (event.type != PointerEventType.Press) continue
+//						if (event.button.isBackButtonFixed && event.type == PointerEventType.Press) {
+//							logger.info { "Queued back event from mouse back press" }
+//							globalNavController.navigator.pop()
+//						}
+//					}
+//				}
+//			}
 		) { // TODO: is a column really the best container?
 			CompositionLocalProvider(globalNavigationLocal provides globalNavController) {
 				CurrentScreen()
@@ -80,7 +78,7 @@ fun NavigationContext() {
 	}
 }
 
-val PointerButton?.isBackButtonFixed
-	get() = this?.index == 5 || this?.index == 3
-val PointerButton?.isForwardButtonFixed
-	get() = this?.index == 6 || this?.index == 4
+//val PointerButton?.isBackButtonFixed
+//	get() = this?.index == 5 || this?.index == 3
+//val PointerButton?.isForwardButtonFixed
+//	get() = this?.index == 6 || this?.index == 4

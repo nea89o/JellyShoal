@@ -38,7 +38,9 @@ import org.jellyfin.sdk.api.operations.UserApi
 data class AddServerScreen(
 	val serverUrl: String,
 ) : ShoalRoute {
-	val logger = KotlinLogging.logger { }
+	companion object {
+		val logger = KotlinLogging.logger { }
+	}
 
 	@Composable
 	override fun Content() {

@@ -1,7 +1,8 @@
 package moe.nea.jellyshoal.data
 
-actual object DataStore {
-	actual fun createStringValue(key: String): DataValue<String> {
+actual object DataStore : IDataStore() {
+
+	override fun createMapValueWithPrefix(prefix: String): DataValue<Map<String, String>> {
 		TODO("Not yet implemented")
 	}
 }

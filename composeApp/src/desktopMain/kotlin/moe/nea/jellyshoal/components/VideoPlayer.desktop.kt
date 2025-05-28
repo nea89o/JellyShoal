@@ -31,7 +31,6 @@ import uk.co.caprica.vlcj.player.component.MediaPlayerSpecs
 
 private val logger = KotlinLogging.logger {}
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 actual fun VideoPlayer(
 	url: String,
