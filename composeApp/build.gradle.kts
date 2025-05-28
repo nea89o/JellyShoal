@@ -10,7 +10,7 @@ plugins {
 	alias(libs.plugins.composeMultiplatform)
 	alias(libs.plugins.composeCompiler)
 	alias(libs.plugins.composeHotReload)
-	id("com.github.gmazzo.buildconfig") version "5.5.0"
+	id("com.github.gmazzo.buildconfig") version "5.6.5"
 	id("com.google.devtools.ksp") version "2.1.21-2.0.1"
 }
 
