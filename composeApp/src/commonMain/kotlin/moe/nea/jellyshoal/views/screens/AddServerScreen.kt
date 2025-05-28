@@ -1,9 +1,12 @@
 package moe.nea.jellyshoal.views.screens
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.outlined.Key
@@ -14,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
@@ -52,6 +56,30 @@ data class AddServerScreen(
 		val navController = findGlobalNavController()
 		val scope = rememberCoroutineScope()
 		val accounts = findPreference { accounts }
+		fun login() {
+			isSubmitting = true
+			scope.launch {
+				try {
+					setError(null)
+					val userApi = UserApi(sharedJellyfinInstance.createApi(baseUrl = serverUrl))
+					val result by userApi.authenticateUserByName(loginName.value.text, password.text)
+					val token = result.accessToken!!
+					logger.info { "Saving token $token for $serverUrl!" }
+					accounts.value += Account(serverUrl, token)
+					navController.navigate(HomePage)
+				} catch (e: Exception) {
+					isSubmitting = false
+					val userFriendlyExplanation =
+						if (e is InvalidStatusException) {
+							explainHttpError(e)
+						} else {
+							"Failed to log in: ${e.message}"
+						}
+					setError(userFriendlyExplanation)
+					logger.warn(e) { "Could not log in to $serverUrl" }
+				}
+			}
+		}
 		CenterColumn {
 			Text("Adding server", fontSize = 20.sp)
 			Text("Trying to join ${serverUrl}.")
@@ -64,16 +92,22 @@ data class AddServerScreen(
 				loginName.value,
 				loginName::value::set,
 				modifier = Modifier.padding(10.dp).fillMaxWidth(),
+				singleLine = true,
 				label = { Text("user name") },
 				leadingIcon = { Icon(imageVector = Icons.Outlined.Person, contentDescription = null) },
+				keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+				keyboardActions = KeyboardActions(onDone = { login() }),
 			)
 			OutlinedTextField(
 				password,
 				setPassword,
 				visualTransformation = if (!showPassword.value) PasswordVisualTransformation() else VisualTransformation.None,
 				modifier = Modifier.padding(10.dp).fillMaxWidth(),
+				singleLine = true,
 				label = { Text("password") },
 				leadingIcon = { Icon(imageVector = Icons.Outlined.Key, contentDescription = null) },
+				keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+				keyboardActions = KeyboardActions(onDone = { login() }),
 				trailingIcon = {
 					IconButton(onClick = {
 						showPassword.value = !showPassword.value
@@ -92,28 +126,7 @@ data class AddServerScreen(
 				modifier = Modifier.align(Alignment.CenterHorizontally),
 				enabled = !isSubmitting,
 				onClick = {
-					isSubmitting = true
-					scope.launch {
-						try {
-							setError(null)
-							val userApi = UserApi(sharedJellyfinInstance.createApi(baseUrl = serverUrl))
-							val result by userApi.authenticateUserByName(loginName.value.text, password.text)
-							val token = result.accessToken!!
-							logger.info { "Saving token $token for $serverUrl!" }
-							accounts.value += Account(serverUrl, token)
-							navController.navigate(HomePage)
-						} catch (e: Exception) {
-							isSubmitting = false
-							val userFriendlyExplanation =
-								if (e is InvalidStatusException) {
-									explainHttpError(e)
-								} else {
-									"Failed to log in: ${e.message}"
-								}
-							setError(userFriendlyExplanation)
-							logger.warn(e) { "Could not log in to $serverUrl" }
-						}
-					}
+					login()
 				},
 			) {
 				Icon(imageVector = Icons.AutoMirrored.Outlined.Login, contentDescription = null)
