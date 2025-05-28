@@ -43,3 +43,8 @@ val formatRelease by tasks.registering(Copy::class) {
 	from(generateLauncherJar)
 	into(layout.buildDirectory.dir("formattedRelease"))
 }
+
+val distLauncher by tasks.registering(Zip::class) {
+	from(formatRelease)
+	archiveBaseName.set("JellyShoal")
+}
