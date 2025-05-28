@@ -76,7 +76,7 @@ kotlin {
 
 			implementation(libs.vlcj)
 
-			implementation(libs.autoServiceAnnotations)
+			implementation(libs.auto.service.annotations)
 		}
 		androidMain.dependencies {
 			implementation(compose.preview)
@@ -112,7 +112,7 @@ repositories {
 }
 
 dependencies {
-	"kspDesktop"("dev.zacsweers.autoservice:auto-service-ksp:1.2.0")
+	"kspDesktop"(libs.auto.service.ksp)
 
 	debugImplementation(compose.uiTooling)
 	// TODO: do multiple distros for each os / arch combo
