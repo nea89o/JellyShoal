@@ -89,6 +89,12 @@ val extraNatives by configurations.creating {
 	isCanBeResolved = true
 	isCanBeDeclared = true
 	isCanBeConsumed = false // Should this be false?
+	this.attributes {
+		attribute(
+			Attribute.of("ui", String::class.java),
+			"awt"
+		)
+	}
 }
 
 //configurations.forEach { println(it.name) }
@@ -157,9 +163,5 @@ val allDesktopJars by tasks.registering(Copy::class) {
 	from(tasks.named("desktopJar"))
 	from(extraNatives)
 	into(layout.buildDirectory.dir("allDesktopJars"))
-	doFirst {
-		configurations.named("desktopRuntimeClasspath").get().files.forEach{
-			println(it)
-		}
-	}
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
