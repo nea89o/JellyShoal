@@ -26,6 +26,25 @@ inline fun <reified E : Enum<E>> IDataStore.createEnumValue(key: String, default
 		)
 }
 
+fun IDataStore.createFloatValue(key: String, defaultValue: Float): DataValue<Float> {
+	return createMapValueWithPrefix(key)
+		.mapSingle(
+			key,
+			{ it.toFloatOrNull() ?: defaultValue },
+			{ it.toString() },
+			defaultValue
+		)
+}
+fun IDataStore.createBoolValue(key: String, defaultValue: Boolean): DataValue<Boolean> {
+	return createMapValueWithPrefix(key)
+		.mapSingle(
+			key,
+			{ it.toBooleanStrictOrNull() ?: defaultValue },
+			{ it.toString() },
+			defaultValue
+		)
+}
+
 fun <T> DataValue<Map<String, String>>.mapSingle(
 	key: String,
 	mapper: (String) -> T,

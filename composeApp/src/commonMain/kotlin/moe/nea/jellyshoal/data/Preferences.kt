@@ -36,6 +36,11 @@ class Preferences(val _store: DataStore) {
 		"ui.movieCard.style",
 		MovieCardStyle.DEFAULT
 	)
+
+	val playbackControlsTimeout = _store.createFloatValue("ui.playbackControls.timeout", 2.0F)
+
+	val playbackStartPaused = _store.createBoolValue("ui.playbackControls.startPaused", false)
+
 }
 
 enum class MovieCardStyle(

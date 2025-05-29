@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.google.auto.service.AutoService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
+import moe.nea.jellyshoal.data.findPreference
 import moe.nea.jellyshoal.util.findGlobalNavController
 import moe.nea.jellyshoal.util.jellyfin.WatchDuration
 import moe.nea.jellyshoal.util.jellyfin.WatchProgress
@@ -39,12 +40,12 @@ import uk.co.caprica.vlcj.factory.discovery.provider.DiscoveryDirectoryProvider
 import uk.co.caprica.vlcj.media.Media
 import uk.co.caprica.vlcj.media.MediaEventAdapter
 import uk.co.caprica.vlcj.media.MediaParsedStatus
-import uk.co.caprica.vlcj.media.Meta
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.base.State
 import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent
 import uk.co.caprica.vlcj.player.component.MediaPlayerSpecs
+import kotlin.time.Duration.Companion.seconds
 
 private val logger = KotlinLogging.logger {}
 
@@ -69,8 +70,10 @@ actual fun VideoPlayer(
 	var playbackPosition by remember { mutableStateOf(WatchDuration(0L)) }
 	var lastActivityGeneration by remember { mutableStateOf(0L) }
 	var isOverlayVisible by remember { mutableStateOf(true) }
+	val playbackControlsTimeout by findPreference { playbackControlsTimeout }
+	val playbackStartPaused by findPreference { playbackStartPaused }
 	LaunchedEffect(lastActivityGeneration) {
-		delay(2000)
+		delay(playbackControlsTimeout.toDouble().seconds)
 		isOverlayVisible = false
 	}
 
@@ -106,7 +109,7 @@ actual fun VideoPlayer(
 			}
 
 			override fun paused(mediaPlayer: MediaPlayer?) {
-				isPaused = PauseState.PLAYING
+				isPaused = PauseState.PAUSED
 			}
 
 			override fun stopped(mediaPlayer: MediaPlayer?) {
@@ -119,7 +122,11 @@ actual fun VideoPlayer(
 				playbackPosition = watchDuration
 			}
 		})
-		player.media().startPaused(url)
+		if (playbackStartPaused) {
+			player.media().startPaused(url)
+		} else {
+			player.media().start(url)
+		}
 		// TODO: can vlc4j seek?
 	}
 	DisposableEffect(Unit) {

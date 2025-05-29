@@ -5,20 +5,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import io.github.oshai.kotlinlogging.KotlinLogging
 import moe.nea.jellyshoal.data.MovieCardStyle
@@ -135,9 +132,72 @@ object SettingsPage : ShoalRoute {
 					findPreference { movieCardStyle },
 					MovieCardStyle.entries
 				)
+
+				TitledBox(
+					title = {
+						Row {
+							Icon(Icons.Outlined.Pause, contentDescription = null)
+							Text("Playback Controls")
+						}
+					},
+					modifier = Modifier.padding(16.dp),
+				) {
+					Column {
+						ConfigureFloat(findPreference { playbackControlsTimeout }, { Text("Control Fade Out") })
+						ConfigureToggle(findPreference { playbackStartPaused }, { Text("Start Paused") })
+					}
+				}
 			}
 		}
 	}
+}
+
+@Composable
+fun ConfigureToggle(
+	state: MutableState<Boolean>,
+	label: @Composable () -> Unit
+) {
+	Row(
+		verticalAlignment = Alignment.CenterVertically,
+		horizontalArrangement = Arrangement.SpaceBetween,
+		modifier = Modifier.padding(16.dp).fillMaxWidth()
+	) {
+		label()
+		Switch(state.value, { state.value = it })
+	}
+}
+
+
+@Composable
+fun ConfigureFloat(
+	state: MutableState<Float>,
+	label: @Composable () -> Unit,
+	suffix: @Composable () -> Unit = {},
+
+	) {
+	var configValue by state
+	var textValue by remember { mutableStateOf(TextFieldValue(configValue.toString())) }
+	val regex = Regex("[0-9]+(\\.[0-9]*)?|")
+	Row(
+		verticalAlignment = Alignment.CenterVertically,
+		horizontalArrangement = Arrangement.SpaceBetween,
+		modifier = Modifier.padding(16.dp).fillMaxWidth()
+	) {
+		label()
+		OutlinedTextField(
+			textValue,
+			onValueChange = { value ->
+				if (regex.matches(value.text)) {
+					textValue = value
+					configValue = value.text.toFloatOrNull() ?: 0F
+				}
+			},
+			suffix = suffix,
+			singleLine = true,
+			keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+		)
+	}
+
 }
 
 @Composable
