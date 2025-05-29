@@ -1,18 +1,11 @@
-This is a Kotlin Multiplatform project targeting Android, Web, Desktop.
+# JellyShoal
 
-* `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - `commonMain` is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    `iosMain` would be the right folder for such calls.
+> A Multi-Jellyfin Client
 
+JellyShoal is a (relatively basic) Jellyfin client, allowing you to access content from multiple JellyFin servers at once. It is planned to have multiple servers merge metadata and potential media sources for each file, allowing you to search through all servers at once and pick whichever one has the movie you want (in the quality you want).
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
+It is written in JB compose multiplatform, but is targeting only regular desktop now (primarily windows and linux, i dont have a mac to test on). There is an android source set, but it is an afterthought (and fails to even open right now) that may be made functional at a later point in time.
 
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
+This is my first bigger project with compose, as well as jellyfin (my only other project being https://github.com/nea89o/JCoverXtremePro, an importer for mediux posters using the jellyfin ui). There might be some weirdness associated with me being relatively inexperienced in this domain.
 
-You can open the web application by running the `:composeApp:wasmJsBrowserDevelopmentRun` Gradle task.
+Currently, the only video backend is VLC, which is required to be installed, but alternative rendering backends are planned for the future.
