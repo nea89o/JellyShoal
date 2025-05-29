@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -17,12 +18,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asComposeImageBitmap
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
@@ -125,7 +126,7 @@ actual fun VideoPlayer(
 
 			override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
 				val watchDuration = WatchDuration.fromMillis(newTime)
-				logger.info { "Time changed to $watchDuration" }
+				logger.trace { "Time changed to $watchDuration" }
 				playbackPosition = watchDuration
 			}
 		})
@@ -142,12 +143,32 @@ actual fun VideoPlayer(
 			player.release()
 		}
 	}
+
+	fun togglePause() {
+		if (isPaused == PauseState.PAUSED) player.controls().play()
+		else player.controls().pause()
+	}
+
+	val focusRequester = remember { FocusRequester() }
+	LaunchedEffect(Unit) {
+		focusRequester.requestFocus()
+	}
 	Box(
 		modifier.background(Color.Black)
 			.fillMaxSize()
 			.onPointerEvent(PointerEventType.Move) {
 				isOverlayVisible = true
 				lastActivityGeneration = System.currentTimeMillis()
+			}
+			.focusRequester(focusRequester)
+			.focusable()
+			.onKeyEvent {
+				if (it.key == Key.Spacebar && it.type == KeyEventType.KeyDown) {
+					togglePause()
+					logger.info { "Pressed pause space bar" }
+					return@onKeyEvent true
+				}
+				false
 			}
 	) {
 		Canvas(modifier = Modifier.fillMaxSize()) {
@@ -225,8 +246,7 @@ actual fun VideoPlayer(
 							verticalAlignment = Alignment.CenterVertically,
 						) { // Bottom Row
 							IconButton(onClick = {
-								if (isPaused == PauseState.PAUSED) player.controls().play()
-								else player.controls().pause()
+								togglePause()
 							}) {
 								if (isPaused == PauseState.PAUSED)
 									Icon(Icons.Outlined.PlayArrow, contentDescription = "Play")
