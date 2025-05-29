@@ -7,8 +7,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Pause
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,9 +22,13 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import com.google.auto.service.AutoService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
+import moe.nea.jellyshoal.util.findGlobalNavController
+import moe.nea.jellyshoal.util.jellyfin.WatchDuration
+import moe.nea.jellyshoal.util.jellyfin.WatchProgress
 import moe.nea.jellyshoal.util.vlc.SkiaBitmapFormatCallback
 import moe.nea.jellyshoal.util.vlc.SkiaBitmapRenderCallback
 import org.jetbrains.skia.Bitmap
@@ -30,11 +39,21 @@ import uk.co.caprica.vlcj.factory.discovery.provider.DiscoveryDirectoryProvider
 import uk.co.caprica.vlcj.media.Media
 import uk.co.caprica.vlcj.media.MediaEventAdapter
 import uk.co.caprica.vlcj.media.MediaParsedStatus
+import uk.co.caprica.vlcj.media.Meta
+import uk.co.caprica.vlcj.player.base.MediaPlayer
+import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.base.State
 import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent
 import uk.co.caprica.vlcj.player.component.MediaPlayerSpecs
 
 private val logger = KotlinLogging.logger {}
+
+enum class PauseState {
+	PAUSED,
+	PLAYING,
+	// STOPPED,
+
+}
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -45,6 +64,9 @@ actual fun VideoPlayer(
 	val bitmap = remember { mutableStateOf<Bitmap?>(null) }
 	val mediaPlayerComponent = remember { findMediaPlayerComponent(bitmap) }
 	val player = remember { mediaPlayerComponent.mediaPlayer() }
+	var totalDuration: WatchDuration? by remember { mutableStateOf(null) }
+	var isPaused by remember { mutableStateOf(PauseState.PLAYING) }
+	var playbackPosition by remember { mutableStateOf(WatchDuration(0L)) }
 	var lastActivityGeneration by remember { mutableStateOf(0L) }
 	var isOverlayVisible by remember { mutableStateOf(true) }
 	LaunchedEffect(lastActivityGeneration) {
@@ -63,13 +85,41 @@ actual fun VideoPlayer(
 			}
 
 			override fun mediaParsedChanged(
-				media: Media?,
-				newStatus: MediaParsedStatus?
+				media: Media,
+				newStatus: MediaParsedStatus
 			) {
+				if (newStatus == MediaParsedStatus.DONE) {
+					totalDuration = WatchDuration.fromMillis(media.info().duration())
+				}
 				logger.info { "Media player parsed to $newStatus" }
 			}
 		})
-		player.media().start(url)
+		player.events().addMediaPlayerEventListener(object : MediaPlayerEventAdapter() {
+			override fun error(mediaPlayer: MediaPlayer?) {
+				LibVlc.libvlc_errmsg()?.let { errorMsg ->
+					logger.error { "Media player errored: $errorMsg" }
+				}
+			}
+
+			override fun playing(mediaPlayer: MediaPlayer?) {
+				isPaused = PauseState.PLAYING
+			}
+
+			override fun paused(mediaPlayer: MediaPlayer?) {
+				isPaused = PauseState.PLAYING
+			}
+
+			override fun stopped(mediaPlayer: MediaPlayer?) {
+				isPaused = PauseState.PAUSED // TODO: stopped
+			}
+
+			override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
+				val watchDuration = WatchDuration.fromMillis(newTime)
+				logger.info { "Time changed to $watchDuration" }
+				playbackPosition = watchDuration
+			}
+		})
+		player.media().startPaused(url)
 		// TODO: can vlc4j seek?
 	}
 	DisposableEffect(Unit) {
@@ -135,15 +185,47 @@ actual fun VideoPlayer(
 			enter = fadeIn(animationSpec = tween(durationMillis = 200)),
 			exit = fadeOut(animationSpec = tween(durationMillis = 600)),
 		) {
-			Column(
-				verticalArrangement = Arrangement.SpaceBetween,
-				modifier = Modifier.matchParentSize(),
-			) {
-				Row { // Top Row
-					Text("This is on top", color = Color.White)
-				}
-				Row { // Bottom Row
-					Text("This is on bottom", color = Color.White)
+			CompositionLocalProvider(LocalContentColor provides Color.White) {
+				ProvideTextStyle(value = LocalTextStyle.current.copy(color = Color.White)) {
+					Column(
+						verticalArrangement = Arrangement.SpaceBetween,
+						modifier = Modifier.matchParentSize(),
+					) {
+						Row(
+							modifier = Modifier.padding(16.dp),
+							verticalAlignment = Alignment.CenterVertically,
+						) { // Top Row
+							val nav = findGlobalNavController()
+							IconButton(onClick = {
+								nav.goBack()
+							}) {
+								Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
+							}
+							Text(
+								"Hier könnte ihr Film Titel stehen",
+								style = MaterialTheme.typography.h5
+							)
+						}
+						Row(
+							modifier = Modifier.padding(16.dp),
+							verticalAlignment = Alignment.CenterVertically,
+						) { // Bottom Row
+							IconButton(onClick = {
+								if (isPaused == PauseState.PAUSED) player.controls().play()
+								else player.controls().pause()
+							}) {
+								if (isPaused == PauseState.PAUSED)
+									Icon(Icons.Outlined.PlayArrow, contentDescription = "Play")
+								else Icon(Icons.Outlined.Pause, contentDescription = "Pause")
+							}
+							Text(playbackPosition.format(), modifier = Modifier.padding(8.dp))
+							val wp = WatchProgress.fromLoadingTimespan(playbackPosition, totalDuration)
+							val progressMod = Modifier.padding(8.dp).weight(1F)
+							if (wp == null) LinearProgressIndicator(modifier = progressMod)
+							else LinearProgressIndicator(modifier = progressMod, progress = wp.progress)
+							Text(totalDuration?.format() ?: "--:--", modifier = Modifier.padding(8.dp))
+						}
+					}
 				}
 			}
 		}
