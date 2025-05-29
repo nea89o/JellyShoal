@@ -3,7 +3,6 @@ package moe.nea.jellyshoal.views.screens
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -80,29 +79,29 @@ object SettingsPage : ShoalRoute {
 		var accounts by findPreference { accounts }
 		val nav = findGlobalNavController()
 		DefaultSideBar {
-			Column {
-				TitledBox(
-					title = { Text("Account") },
-					modifier = Modifier.padding(16.dp),
-				) {
-					LazyColumn {
-						items(accounts) { account ->
-							Row(
-								horizontalArrangement = Arrangement.SpaceBetween,
-								modifier = Modifier.fillMaxWidth().padding(16.dp),
-								verticalAlignment = Alignment.CenterVertically
-							) {
-								Text(account.server)
-								IconButton(onClick = {
-									val newAccounts = accounts.filter { it != account }
-									logger.info { "Trimming accounts down to $newAccounts" }
-									accounts = newAccounts
-								}) {
-									Icon(Icons.Outlined.Delete, contentDescription = "Remove Account")
+			LazyColumn {
+				item {
+					TitledBox(
+						title = { Text("Account") },
+						modifier = Modifier.padding(16.dp),
+					) {
+						Column {
+							accounts.forEach { account ->
+								Row(
+									horizontalArrangement = Arrangement.SpaceBetween,
+									modifier = Modifier.fillMaxWidth().padding(16.dp),
+									verticalAlignment = Alignment.CenterVertically
+								) {
+									Text(account.server)
+									IconButton(onClick = {
+										val newAccounts = accounts.filter { it != account }
+										logger.info { "Trimming accounts down to $newAccounts" }
+										accounts = newAccounts
+									}) {
+										Icon(Icons.Outlined.Delete, contentDescription = "Remove Account")
+									}
 								}
 							}
-						}
-						item {
 							Button(onClick = {
 								nav.navigate(SelectServerPage)
 							}, modifier = Modifier.padding(16.dp)) {
@@ -111,46 +110,50 @@ object SettingsPage : ShoalRoute {
 							}
 						}
 					}
-				}
-				ConfigureEnum(
-					title = {
-						Row {
-							Icon(Icons.Outlined.Palette, contentDescription = null)
-							Text("Colors")
-						}
-					},
-					findPreference { colorTheme },
-					SelectedColorTheme.entries
-				)
-				ConfigureEnum(
-					title = {
-						Row {
-							Icon(Icons.Outlined.Image, contentDescription = null)
-							Text("Card Style")
-						}
-					},
-					findPreference { movieCardStyle },
-					MovieCardStyle.entries
-				)
+					ConfigureEnum(
+						title = {
+							Row {
+								Icon(Icons.Outlined.Palette, contentDescription = null)
+								Text("Colors")
+							}
+						},
+						findPreference { colorTheme },
+						SelectedColorTheme.entries
+					)
+					ConfigureEnum(
+						title = {
+							Row {
+								Icon(Icons.Outlined.Image, contentDescription = null)
+								Text("Card Style")
+							}
+						},
+						findPreference { movieCardStyle },
+						MovieCardStyle.entries
+					)
 
-				TitledBox(
-					title = {
-						Row {
-							Icon(Icons.Outlined.Pause, contentDescription = null)
-							Text("Playback Controls")
+					TitledBox(
+						title = {
+							Row {
+								Icon(Icons.Outlined.Pause, contentDescription = null)
+								Text("Playback Controls")
+							}
+						},
+						modifier = Modifier.padding(16.dp),
+					) {
+						Column {
+							ConfigureFloat(findPreference { playbackControlsTimeout }, { Text("Control Fade Out") })
+							ConfigureToggle(findPreference { playbackStartPaused }, { Text("Start Paused") })
 						}
-					},
-					modifier = Modifier.padding(16.dp),
-				) {
-					Column {
-						ConfigureFloat(findPreference { playbackControlsTimeout }, { Text("Control Fade Out") })
-						ConfigureToggle(findPreference { playbackStartPaused }, { Text("Start Paused") })
 					}
+					ExtraPlatformSettings()
 				}
 			}
 		}
 	}
 }
+
+@Composable
+expect fun ExtraPlatformSettings()
 
 @Composable
 fun ConfigureToggle(
@@ -173,8 +176,7 @@ fun ConfigureFloat(
 	state: MutableState<Float>,
 	label: @Composable () -> Unit,
 	suffix: @Composable () -> Unit = {},
-
-	) {
+) {
 	var configValue by state
 	var textValue by remember { mutableStateOf(TextFieldValue(configValue.toString())) }
 	val regex = Regex("[0-9]+(\\.[0-9]*)?|")

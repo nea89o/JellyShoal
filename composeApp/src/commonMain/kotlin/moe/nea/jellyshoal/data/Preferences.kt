@@ -41,6 +41,9 @@ class Preferences(val _store: DataStore) {
 
 	val playbackStartPaused = _store.createBoolValue("ui.playbackControls.startPaused", false)
 
+	val externalVlcPath = _store.createStringValue(
+		"desktop.vlc.externalPath"
+	)
 }
 
 enum class MovieCardStyle(

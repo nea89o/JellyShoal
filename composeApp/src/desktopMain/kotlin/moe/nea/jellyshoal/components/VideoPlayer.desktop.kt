@@ -33,7 +33,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.google.auto.service.AutoService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
 import moe.nea.jellyshoal.data.findPreference
@@ -44,11 +43,10 @@ import moe.nea.jellyshoal.util.jellyfin.WatchDuration
 import moe.nea.jellyshoal.util.jellyfin.WatchProgress
 import moe.nea.jellyshoal.util.vlc.SkiaBitmapFormatCallback
 import moe.nea.jellyshoal.util.vlc.SkiaBitmapRenderCallback
+import moe.nea.jellyshoal.util.vlc.findMediaPlayerComponent
 import org.jetbrains.skia.Bitmap
 import uk.co.caprica.vlcj.binding.lib.LibVlc
 import uk.co.caprica.vlcj.binding.support.init.LinuxNativeInit
-import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil
-import uk.co.caprica.vlcj.factory.discovery.provider.DiscoveryDirectoryProvider
 import uk.co.caprica.vlcj.media.Media
 import uk.co.caprica.vlcj.media.MediaEventAdapter
 import uk.co.caprica.vlcj.media.MediaParsedStatus
@@ -310,36 +308,5 @@ actual fun VideoPlayer(
 	}
 }
 
-@AutoService(DiscoveryDirectoryProvider::class)
-class NixDiscoveryProvider : DiscoveryDirectoryProvider {
-	override fun priority(): Int {
-		return 10
-	}
-
-	override fun directories(): Array<out String> {
-		return EXTRA_LIB_PATH.split(":").toTypedArray()
-	}
-
-	override fun supported(): Boolean {
-		return RuntimeUtil.isNix()
-	}
-}
-
-val EXTRA_LIB_PATH = "/nix/store/p8nhx61w54icjbxgjs15mgk73k95gf75-vlc-3.0.21/lib:"
-
 var lastCall = System.currentTimeMillis()
 
-fun findMediaPlayerComponent(bitmapState: MutableState<Bitmap?>): CallbackMediaPlayerComponent {
-	System.setProperty("jna.library.path", System.getProperty("jna.library.path") + ":" + EXTRA_LIB_PATH)
-	System.setProperty("VLCJ_INITX", "no")
-	LinuxNativeInit.init()
-	// TODO: dynamically decide where to load vlc libs from
-	logger.info { "Creating player component" }
-	return CallbackMediaPlayerComponent(
-		MediaPlayerSpecs.callbackMediaPlayerSpec()
-			.withBufferFormatCallback(SkiaBitmapFormatCallback)
-			.withRenderCallback(SkiaBitmapRenderCallback {
-				bitmapState.value = it.setImmutable()
-			})
-	)
-}
