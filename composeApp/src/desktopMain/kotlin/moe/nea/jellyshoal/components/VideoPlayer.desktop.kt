@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Fullscreen
+import androidx.compose.material.icons.outlined.FullscreenExit
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.runtime.*
@@ -35,6 +37,8 @@ import com.google.auto.service.AutoService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
 import moe.nea.jellyshoal.data.findPreference
+import moe.nea.jellyshoal.util.compose.findFullScreenHelper
+import moe.nea.jellyshoal.util.compose.toggleFullScreen
 import moe.nea.jellyshoal.util.findGlobalNavController
 import moe.nea.jellyshoal.util.jellyfin.WatchDuration
 import moe.nea.jellyshoal.util.jellyfin.WatchProgress
@@ -286,6 +290,18 @@ actual fun VideoPlayer(
 								strokeCap = cap
 							)
 							Text(totalDuration?.format() ?: "--:--", modifier = Modifier.padding(8.dp))
+
+							val fullscreenHelper = findFullScreenHelper()
+							IconButton(
+								onClick = {
+									fullscreenHelper.toggleFullScreen()
+								}
+							) {
+								if (fullscreenHelper.isFullScreen)
+									Icon(Icons.Outlined.FullscreenExit, contentDescription = "Exit Fullscreen")
+								else
+									Icon(Icons.Outlined.Fullscreen, contentDescription = "Enter Fullscreen")
+							}
 						}
 					}
 				}
