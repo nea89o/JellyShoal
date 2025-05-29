@@ -3,11 +3,17 @@ package moe.nea.jellyshoal.util.jellyfin
 data class WatchDuration(val ticks: Long) {
 	companion object {
 		fun fromMillis(millis: Long): WatchDuration {
-			return WatchDuration(millis * (10_000_000 / 1000))
+			return WatchDuration(millis * (10_000))
 		}
 	}
 
-	val asSeconds get() = ticks / 1e7
+	operator fun times(percentage: Float): WatchDuration {
+		return WatchDuration((percentage * ticks).toLong())
+	}
+
+	val asMillis get() = ticks / 1e4
+	val asWholeMillis get() = asMillis.toLong()
+	val asSeconds get() = asMillis / 1e3
 	val asWholeSeconds get() = asSeconds.toInt()
 
 	fun format(): String {

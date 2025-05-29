@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -17,9 +18,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asComposeImageBitmap
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -227,9 +234,37 @@ actual fun VideoPlayer(
 							}
 							Text(playbackPosition.format(), modifier = Modifier.padding(8.dp))
 							val wp = WatchProgress.fromLoadingTimespan(playbackPosition, totalDuration)
+							var progressBarWidth by remember { mutableStateOf(0) }
 							val progressMod = Modifier.padding(8.dp).weight(1F)
-							if (wp == null) LinearProgressIndicator(modifier = progressMod)
-							else LinearProgressIndicator(modifier = progressMod, progress = wp.progress)
+								.height(12.dp)
+								.onGloballyPositioned {
+									progressBarWidth = it.size.width
+								}
+								.pointerInput(Unit) {
+									detectTapGestures { position ->
+										if (progressBarWidth > 0) {
+											val percentage = (position.x / progressBarWidth).coerceIn(0F, 1F)
+											val td = totalDuration ?: return@detectTapGestures
+											val viewPosition = (td * percentage)
+											if (isPaused != PauseState.PLAYING) {
+												playbackPosition =
+													viewPosition // timeChanged only gets called while playing
+											}
+											playbackPosition = viewPosition
+											logger.info { "Seeking to $viewPosition" }
+											player.controls()
+												.setTime(viewPosition.asWholeMillis)
+										}
+									}
+									// TODO: really cool and awesome dragging
+								}
+							val cap = StrokeCap.Round
+							if (wp == null) LinearProgressIndicator(modifier = progressMod, strokeCap = cap)
+							else LinearProgressIndicator(
+								modifier = progressMod,
+								progress = wp.progress,
+								strokeCap = cap
+							)
 							Text(totalDuration?.format() ?: "--:--", modifier = Modifier.padding(8.dp))
 						}
 					}
