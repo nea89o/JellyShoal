@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -24,14 +23,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.asComposeImageBitmap
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.delay
@@ -41,20 +37,15 @@ import moe.nea.jellyshoal.util.compose.toggleFullScreen
 import moe.nea.jellyshoal.util.findGlobalNavController
 import moe.nea.jellyshoal.util.jellyfin.WatchDuration
 import moe.nea.jellyshoal.util.jellyfin.WatchProgress
-import moe.nea.jellyshoal.util.vlc.SkiaBitmapFormatCallback
-import moe.nea.jellyshoal.util.vlc.SkiaBitmapRenderCallback
 import moe.nea.jellyshoal.util.vlc.findMediaPlayerComponent
 import org.jetbrains.skia.Bitmap
 import uk.co.caprica.vlcj.binding.lib.LibVlc
-import uk.co.caprica.vlcj.binding.support.init.LinuxNativeInit
 import uk.co.caprica.vlcj.media.Media
 import uk.co.caprica.vlcj.media.MediaEventAdapter
 import uk.co.caprica.vlcj.media.MediaParsedStatus
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.base.State
-import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent
-import uk.co.caprica.vlcj.player.component.MediaPlayerSpecs
 import kotlin.time.Duration.Companion.seconds
 
 private val logger = KotlinLogging.logger {}
@@ -173,49 +164,7 @@ actual fun VideoPlayer(
 				false
 			}
 	) {
-		Canvas(modifier = Modifier.fillMaxSize()) {
-			bitmap.value?.let { bmp ->
-				val imageAspectRatio = bmp.width.toFloat() / bmp.height.toFloat()
-				val screenAspectRatio = size.width / size.height
-				val scaledImageSize: IntSize
-				val imageOffset: IntOffset
-				logger.trace {
-					val lastLastCall = lastCall
-					lastCall = System.currentTimeMillis()
-					"Received new frame after ${lastCall - lastLastCall}ms"
-				}
-
-				if (imageAspectRatio > screenAspectRatio) {
-					// The image is wider than the screen
-					scaledImageSize =
-						IntSize(
-							size.width.toInt(),
-							(size.width / imageAspectRatio).toInt()
-						)
-					imageOffset = IntOffset(
-						0,
-						((size.height - scaledImageSize.height) / 2).toInt()
-					)
-				} else {
-					// The image is higher 🌿 than the screen
-					scaledImageSize =
-						IntSize(
-							(size.height * imageAspectRatio).toInt(),
-							size.height.toInt(),
-						)
-					imageOffset = IntOffset(
-						((size.width - scaledImageSize.width) / 2).toInt(),
-						0
-					)
-
-				}
-				drawImage(
-					bmp.asComposeImageBitmap(),
-					dstOffset = imageOffset,
-					dstSize = scaledImageSize,
-				)
-			}
-		}
+		VideoCanvas(bitmap)
 		AnimatedVisibility(
 			isOverlayVisible,
 			modifier = Modifier.fillMaxSize(),
@@ -308,5 +257,4 @@ actual fun VideoPlayer(
 	}
 }
 
-var lastCall = System.currentTimeMillis()
 
