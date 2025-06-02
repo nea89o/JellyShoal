@@ -64,7 +64,7 @@ data class AddServerScreen(
 					val result by userApi.authenticateUserByName(loginName.value.text, password.text)
 					val token = result.accessToken!!
 					logger.info { "Saving token $token for $serverUrl!" }
-					accounts.value += Account(serverUrl, token)
+					accounts.value += Account(serverUrl, token, null)
 					navController.navigate(HomePage)
 				} catch (e: Exception) {
 					isSubmitting = false

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.CurrentScreen
@@ -17,7 +16,11 @@ import moe.nea.jellyshoal.views.screens.HomePage
 import moe.nea.jellyshoal.views.screens.WelcomePage
 
 // TODO: implement https://github.com/adrielcafe/voyager/issues/497
-interface ShoalRoute : Screen {}
+interface ShoalRoute : Screen {
+	fun ownsPage(page: ShoalRoute): Boolean {
+		return page == this
+	}
+}
 
 val globalNavigationLocal =
 	staticCompositionLocalOf<TypedNavHostController<ShoalRoute>> { error("Global Navigation Scope not provided") }

@@ -8,6 +8,7 @@ import moe.nea.jellyshoal.util.error.WebResult
 import moe.nea.jellyshoal.util.error.explainGenericError
 import moe.nea.jellyshoal.util.jellyfin.sharedJellyfinInstance
 import org.jellyfin.sdk.api.client.ApiClient
+import java.net.URI
 
 class Preferences(val _store: DataStore) {
 	val testValue = _store.createStringValue("server")
@@ -19,13 +20,20 @@ class Preferences(val _store: DataStore) {
 						.map { it.substring("account.token.".length) }
 					accounts.map {
 						val token = props["account.token.$it"]!!
-						Account(it, token)
+						Account(
+							it,
+							token,
+							props["account.name.$it"]
+						)
 					}
 				},
 				unmapper = { accounts ->
 					val props = mutableMapOf<String, String>()
 					for (account in accounts) {
 						props["account.token.${account.server}"] = account.token
+						account.name?.let {
+							props["account.name.${account.server}"] = it
+						}
 					}
 					props
 				},
@@ -81,6 +89,7 @@ enum class SelectedColorTheme(override val userFriendlyName: String) : NamedEnum
 data class Account(
 	val server: String,
 	val token: String,
+	val name: String?,
 ) {
 	@Transient
 	val rawApiClient by lazy {
@@ -99,8 +108,6 @@ data class Account(
 	}
 
 	// TODO: have like a central friendly name resolution name
-	fun userFriendlyName(): String = server
-		.replace("http://", "")
-		.replace("https://", "")
+	fun userFriendlyName(): String = name ?: URI.create(server).host
 }
 

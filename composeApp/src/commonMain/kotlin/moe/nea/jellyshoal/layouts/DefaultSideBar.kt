@@ -31,7 +31,7 @@ fun DefaultSideBar(
 		NavigationDrawerItem(
 			icon = { Icon(icon, contentDescription = null) },
 			label = { Text(label) },
-			selected = page == currentPage,
+			selected = page.ownsPage(currentPage),
 			onClick = {
 				nav.navigate(page)
 			},

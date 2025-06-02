@@ -73,6 +73,9 @@ fun TitledBox(
 
 object SettingsPage : ShoalRoute {
 	val logger = KotlinLogging.logger { }
+	override fun ownsPage(page: ShoalRoute): Boolean {
+		return super.ownsPage(page) || page is ServerSettingsPage
+	}
 
 	@Composable
 	override fun Content() {
@@ -92,13 +95,24 @@ object SettingsPage : ShoalRoute {
 									modifier = Modifier.fillMaxWidth().padding(16.dp),
 									verticalAlignment = Alignment.CenterVertically
 								) {
-									Text(account.server)
-									IconButton(onClick = {
-										val newAccounts = accounts.filter { it != account }
-										logger.info { "Trimming accounts down to $newAccounts" }
-										accounts = newAccounts
-									}) {
-										Icon(Icons.Outlined.Delete, contentDescription = "Remove Account")
+									Text(account.userFriendlyName())
+									Row(
+										verticalAlignment = Alignment.CenterVertically,
+										horizontalArrangement = Arrangement.spacedBy(12.dp),
+									) {
+										IconButton(onClick = {
+											nav.navigate(ServerSettingsPage(account.server))
+										}) {
+											Icon(Icons.Outlined.Settings, contentDescription = "Server Settings")
+										}
+
+										IconButton(onClick = {
+											val newAccounts = accounts.filter { it != account }
+											logger.info { "Trimming accounts down to $newAccounts" }
+											accounts = newAccounts
+										}) {
+											Icon(Icons.Outlined.Delete, contentDescription = "Remove Account")
+										}
 									}
 								}
 							}
@@ -154,6 +168,34 @@ object SettingsPage : ShoalRoute {
 
 @Composable
 expect fun ExtraPlatformSettings()
+
+
+@Composable
+fun ConfigureText(
+	state: MutableState<String>,
+	label: @Composable () -> Unit
+) {
+	ConfigurableOptionRow(label) {
+		OutlinedTextField(state.value, { state.value = it }, singleLine = true)
+	}
+}
+
+@Composable
+fun ConfigurableOptionRow(
+	label: @Composable () -> Unit,
+	editor: @Composable () -> Unit,
+) {
+	Row(
+		verticalAlignment = Alignment.CenterVertically,
+		horizontalArrangement = Arrangement.SpaceBetween,
+		modifier = Modifier.padding(16.dp).fillMaxWidth()
+	) {
+		Row(verticalAlignment = Alignment.CenterVertically) {
+			label()
+		}
+		editor()
+	}
+}
 
 @Composable
 fun ConfigureToggle(
