@@ -3,6 +3,9 @@ package moe.nea.jellyshoal.data
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import kotlinx.serialization.Transient
+import moe.nea.jellyshoal.util.error.WebResult
+import moe.nea.jellyshoal.util.error.explainGenericError
 import moe.nea.jellyshoal.util.jellyfin.sharedJellyfinInstance
 import org.jellyfin.sdk.api.client.ApiClient
 
@@ -79,10 +82,21 @@ data class Account(
 	val server: String,
 	val token: String,
 ) {
-	fun createApiClient(): ApiClient = sharedJellyfinInstance.createApi(
-		baseUrl = server,
-		accessToken = token,
-	)
+	@Transient
+	val rawApiClient by lazy {
+		sharedJellyfinInstance.createApi(
+			baseUrl = server,
+			accessToken = token,
+		)
+	}
+
+	inline fun <T> useApiClient(block: (ApiClient) -> T): WebResult<T> {
+		return try {
+			WebResult(block(rawApiClient))
+		} catch (ex: Exception) {
+			WebResult(explainGenericError(ex))
+		}
+	}
 
 	// TODO: have like a central friendly name resolution name
 	fun userFriendlyName(): String = server

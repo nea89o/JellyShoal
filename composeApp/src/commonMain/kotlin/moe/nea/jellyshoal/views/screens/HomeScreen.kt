@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +25,7 @@ import moe.nea.jellyshoal.data.Account
 import moe.nea.jellyshoal.data.findPreference
 import moe.nea.jellyshoal.layouts.DefaultSideBar
 import moe.nea.jellyshoal.util.ShoalRoute
+import moe.nea.jellyshoal.util.error.WebResult
 import moe.nea.jellyshoal.util.jellyfin.ItemWithProvenance
 import moe.nea.jellyshoal.util.jellyfin.withProvenance
 import org.jellyfin.sdk.api.client.extensions.itemsApi
@@ -35,23 +37,27 @@ object HomePage : ShoalRoute {
 	@Composable
 	override fun Content() {
 		val accounts by findPreference { accounts }
-		val resumeItems = remember { mutableStateMapOf<Account, List<ItemWithProvenance>>() }
-		val nextUpItems = remember { mutableStateMapOf<Account, List<ItemWithProvenance>>() }
+		val resumeItems = remember { mutableStateMapOf<Account, WebResult<List<ItemWithProvenance>>>() }
+		val nextUpItems = remember { mutableStateMapOf<Account, WebResult<List<ItemWithProvenance>>>() }
 		accounts.map { account ->
 			LaunchedEffect(account) {
-				val result = account.createApiClient().itemsApi
-					.getResumeItems(userId = null)
-					.content
-					.items
-					.map { it.withProvenance(account) }
+				val result = account.useApiClient {
+					it.itemsApi
+						.getResumeItems(userId = null)
+						.content
+						.items
+						.map { it.withProvenance(account) }
+				}
 				resumeItems.put(account, result)
 			}
 			LaunchedEffect(account) {
-				val result = account.createApiClient().tvShowsApi
-					.getNextUp(userId = null)
-					.content
-					.items
-					.map { it.withProvenance(account) }
+				val result = account.useApiClient {
+					it.tvShowsApi
+						.getNextUp(userId = null)
+						.content
+						.items
+						.map { it.withProvenance(account) }
+				}
 				nextUpItems.put(account, result)
 			}
 		}
@@ -77,15 +83,31 @@ object HomePage : ShoalRoute {
 									Text("Loading")
 								}
 							} else {
-								LazyRow(modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 16.dp)) {
-									items(items) { resume ->
-										if (useCompactFrames) {
-											ImageOnlyMovieCard(resume)
-										} else {
-											MovieCard(resume, modifier = Modifier.width(720.dp))
+								items.handle(
+									{
+										LazyRow(
+											modifier = Modifier.padding(
+												start = 16.dp,
+												top = 16.dp,
+												bottom = 16.dp
+											)
+										) {
+											items(it) { resume ->
+												if (useCompactFrames) {
+													ImageOnlyMovieCard(resume)
+												} else {
+													MovieCard(resume, modifier = Modifier.width(720.dp))
+												}
+											}
 										}
-									}
-								}
+									},
+									{
+										Row(modifier = Modifier.align(Alignment.CenterHorizontally).padding(30.dp)) {
+											Icon(Icons.Outlined.Error, contentDescription = null)
+											Text("Encountered an error while loading watchlist: $it")
+											// TODO: add refresh button
+										}
+									})
 							}
 						}
 					}

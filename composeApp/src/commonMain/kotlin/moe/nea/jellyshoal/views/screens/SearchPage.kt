@@ -11,11 +11,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -28,7 +27,7 @@ import moe.nea.jellyshoal.data.findPreference
 import moe.nea.jellyshoal.layouts.DefaultSideBar
 import moe.nea.jellyshoal.util.ShoalRoute
 import moe.nea.jellyshoal.util.jellyfin.ItemWithProvenance
-import org.jellyfin.sdk.api.operations.ItemsApi
+import org.jellyfin.sdk.api.client.extensions.itemsApi
 import org.jellyfin.sdk.model.api.BaseItemKind
 
 object SearchPage : ShoalRoute {
@@ -39,6 +38,7 @@ object SearchPage : ShoalRoute {
 		val (search, setSearch) = remember { mutableStateOf(TextFieldValue("")) }
 		val (accounts) = findPreference { accounts }
 		val (results, setResults) = remember { mutableStateOf<List<ItemWithProvenance>>(emptyList()) }
+		val errors = remember { mutableStateListOf<String>() }
 		val scope = rememberCoroutineScope()
 
 		// TODO. add SeachApi for search recommendations in the background (debounce jb compose?)
@@ -49,19 +49,28 @@ object SearchPage : ShoalRoute {
 				val allItems = mutableListOf<ItemWithProvenance>()
 
 				accounts.forEach { account ->
-					val api = ItemsApi(account.createApiClient())
-					val items = api.getItems(
-						searchTerm = searchText,
-						includeItemTypes = setOf(
-							BaseItemKind.MOVIE, BaseItemKind.SERIES,
-							BaseItemKind.EPISODE, BaseItemKind.SEASON,
-						),
-						recursive = true
+					val result = account.useApiClient {
+						it.itemsApi.getItems(
+							searchTerm = searchText,
+							includeItemTypes = setOf(
+								BaseItemKind.MOVIE, BaseItemKind.SERIES,
+								BaseItemKind.EPISODE, BaseItemKind.SEASON,
+							),
+							recursive = true
+						)
+					}
+					result.handle(
+						{
+							it.content.items.mapTo(allItems) {
+								ItemWithProvenance(account, it)
+							}
+						},
+						{
+							errors.add(it)
+						}
 					)
 					// TODO: pagination? auto scrolling?
-					items.content.items.mapTo(allItems) {
-						ItemWithProvenance(account, it)
-					}
+
 				}
 				setResults(allItems)
 			}
@@ -82,6 +91,9 @@ object SearchPage : ShoalRoute {
 				)
 				val useCompactCards = findPreference { movieCardStyle }.value.useCompactInGeneral
 				LazyColumn {
+					items(errors) { error ->
+						Text(error, color = MaterialTheme.colorScheme.error)
+					}
 					items(results) { item ->
 						if (useCompactCards) {
 							ImageOnlyMovieCard(item)

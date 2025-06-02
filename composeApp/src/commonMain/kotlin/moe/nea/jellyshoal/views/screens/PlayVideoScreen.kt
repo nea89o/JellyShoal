@@ -15,14 +15,16 @@ class PlayVideoScreen(
 	@Composable
 	override fun Content() {
 		// TODO: Add back button on hover
-		VideoPlayer(
-			item.provenance.createApiClient()
-				.videosApi
+		val videoUrl = item.provenance.useApiClient {
+			it.videosApi
 				.getVideoStreamUrl(
 					itemId = item.item.id,
 					container = "mkv",
 					static = true,
-				),
+				)
+		}
+		VideoPlayer(
+			videoUrl.unsafeGetResult(),
 			modifier = Modifier.fillMaxSize()
 		)
 	}
