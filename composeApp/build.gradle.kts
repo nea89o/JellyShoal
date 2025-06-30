@@ -12,7 +12,7 @@ plugins {
 	alias(libs.plugins.composeCompiler)
 	alias(libs.plugins.composeHotReload)
 	id("com.github.gmazzo.buildconfig") version "5.6.5"
-	id("com.google.devtools.ksp") version "2.1.21-2.0.1"
+	id("com.google.devtools.ksp") version "2.2.0-2.0.2"
 }
 
 kotlin {
