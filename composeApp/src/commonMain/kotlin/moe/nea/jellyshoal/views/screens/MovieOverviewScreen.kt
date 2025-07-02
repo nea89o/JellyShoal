@@ -13,6 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.*
+import moe.nea.jellyshoal.components.DownloadManager
 import moe.nea.jellyshoal.data.Account
 import moe.nea.jellyshoal.layouts.CenterColumn
 import moe.nea.jellyshoal.layouts.DefaultSideBar
@@ -26,9 +29,16 @@ import org.jellyfin.sdk.api.client.extensions.videosApi
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.ImageType
 import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
+import java.lang.Runnable
 import java.net.URL
 import javax.swing.JFileChooser
+import javax.swing.SwingUtilities
 import javax.swing.filechooser.FileNameExtensionFilter
+import kotlin.coroutines.CoroutineContext
+
+private val logger = KotlinLogging.logger { }
 
 data class MovieOverviewScreen(
 	val account: Account,
@@ -70,7 +80,7 @@ data class MovieOverviewScreen(
 								Modifier.padding(16.dp),
 								style = MaterialTheme.typography.bodyLarge
 							)
-							Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+							Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
 								Row {}
 								Row {
 									val nav = findGlobalNavController()
@@ -86,43 +96,10 @@ data class MovieOverviewScreen(
 										Text("Play")
 									}
 								}
-								Row {
+								Row(horizontalArrangement = Arrangement.End) {
 									Button(onClick = {
-										// TODO: move this out of common code
-										val fileChooser = JFileChooser()
-										fileChooser.dialogTitle = "Download MP4"
-										fileChooser.selectedFile = File("${item.item.name}")
-										val mp4Filter = FileNameExtensionFilter("MP4", "mp4")
-										val mkvFilter = FileNameExtensionFilter("Matroska", "mkv")
-										fileChooser.addChoosableFileFilter(mp4Filter)
-										fileChooser.addChoosableFileFilter(mkvFilter)
-										fileChooser.fileFilter = mp4Filter
-										if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-											val containerType = when (fileChooser.fileFilter) {
-												mkvFilter -> "mkv"
-												mp4Filter -> "mp4"
-												else -> "mp4"
-											}
-											val downloadUrl = item.provenance.useApiClient {
-												it.videosApi
-													.getVideoStreamUrl(
-														itemId = item.item.id,
-														container = containerType,
-														static = true,
-
-													)
-											}.unsafeGetResult()
-											var outputFile = fileChooser.selectedFile
-											if (outputFile.extension != containerType)
-												outputFile =
-													outputFile.resolveSibling(outputFile.nameWithoutExtension + "." + containerType)
-											outputFile.parentFile.mkdirs()
-											// TODO: show download progress somewhere in sidebar most likely
-											URL(downloadUrl).openStream().use { inputStream ->
-												outputFile.outputStream().use { outputStream ->
-													inputStream.copyTo(outputStream)
-												}
-											}
+										GlobalScope.launch {
+											performDownload(item)
 										}
 									}) {
 										Icon(Icons.Outlined.Download, contentDescription = "Download")
@@ -148,6 +125,87 @@ data class MovieOverviewScreen(
 	}
 }
 
+val swingDispatcher = object : CoroutineDispatcher() {
+	override fun dispatch(context: CoroutineContext, block: Runnable) {
+		if (SwingUtilities.isEventDispatchThread()) {
+			block.run()
+		} else {
+			SwingUtilities.invokeLater(block)
+		}
+	}
+}
+
+suspend fun performDownload(item: ItemWithProvenance) {
+	val fileChooser = JFileChooser()
+	fileChooser.dialogTitle = "Download MP4"
+	fileChooser.selectedFile = File("${item.item.name}")
+	val mp4Filter = FileNameExtensionFilter("MP4", "mp4")
+	val mkvFilter = FileNameExtensionFilter("Matroska", "mkv")
+	fileChooser.addChoosableFileFilter(mp4Filter)
+	fileChooser.addChoosableFileFilter(mkvFilter)
+	fileChooser.fileFilter = mp4Filter
+	if (withContext(swingDispatcher) { fileChooser.showSaveDialog(null) } == JFileChooser.APPROVE_OPTION) {
+		val containerType = when (fileChooser.fileFilter) {
+			mkvFilter -> "mkv"
+			mp4Filter -> "mp4"
+			else -> "mp4"
+		}
+		val downloadUrl = item.provenance.useApiClient {
+			it.videosApi
+				.getVideoStreamUrl(
+					itemId = item.item.id,
+					container = containerType,
+					static = true,
+				)
+		}.unsafeGetResult()
+		logger.info { "Downloading movie from $downloadUrl" }
+		var outputFile = fileChooser.selectedFile
+		if (outputFile.extension != containerType)
+			outputFile =
+				outputFile.resolveSibling(outputFile.nameWithoutExtension + "." + containerType)
+		outputFile.parentFile.mkdirs()
+		val ref = DownloadManager.create(outputFile.name)
+		// TODO: show download progress somewhere in sidebar most likely
+		try {
+			withContext(Dispatchers.IO) {
+				URL(downloadUrl).openConnection().let { conn ->
+					val expectedLength = conn.contentLengthLong
+					conn.inputStream.use { inputStream ->
+						outputFile.outputStream().use { outputStream ->
+							inputStream.copyWithProgress(outputStream) {
+								if (DownloadManager.isCancelled(ref)) {
+									throw Cancellation()
+								}
+								DownloadManager.updateProgress(ref, (it / expectedLength.toDouble()).toFloat())
+							}
+						}
+					}
+				}
+			}
+		} catch (ex: Cancellation) {
+			outputFile.delete()
+			logger.warn { "Cancelled download of $outputFile" }
+			return
+		}
+		DownloadManager.finish(ref)
+		logger.info { "Downloaded movie to ${outputFile}" }
+	}
+}
+
+private class Cancellation() : Exception()
+
+inline fun InputStream.copyWithProgress(to: OutputStream, progress: (Long) -> Unit) {
+	val buffer = ByteArray(1024)
+	var bytesRead = 0L
+	while (true) {
+		val readCount = read(buffer)
+		if (readCount <= 0) break
+		to.write(buffer, 0, readCount)
+		bytesRead += readCount
+		progress(bytesRead)
+	}
+	progress(bytesRead)
+}
 
 @Composable
 fun BigErrorPage(message: String) {

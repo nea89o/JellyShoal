@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import moe.nea.jellyshoal.components.DownloadList
 import moe.nea.jellyshoal.util.ShoalRoute
 import moe.nea.jellyshoal.util.findGlobalNavController
 import moe.nea.jellyshoal.views.screens.HomePage
@@ -53,6 +54,7 @@ fun DefaultSideBar(
 						itemFor(SearchPage, Icons.Outlined.Search, "Search")
 					}
 					Column {
+						DownloadList()
 						itemFor(SettingsPage, Icons.Outlined.Settings, "Settings")
 					}
 				}
