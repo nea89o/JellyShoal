@@ -2,11 +2,11 @@ package moe.nea.jellyshoal.views.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -22,8 +22,13 @@ import moe.nea.jellyshoal.util.findGlobalNavController
 import moe.nea.jellyshoal.util.jellyfin.ItemWithProvenance
 import moe.nea.jellyshoal.util.jellyfin.withProvenance
 import org.jellyfin.sdk.api.client.extensions.userLibraryApi
+import org.jellyfin.sdk.api.client.extensions.videosApi
 import org.jellyfin.sdk.model.UUID
 import org.jellyfin.sdk.model.api.ImageType
+import java.io.File
+import java.net.URL
+import javax.swing.JFileChooser
+import javax.swing.filechooser.FileNameExtensionFilter
 
 data class MovieOverviewScreen(
 	val account: Account,
@@ -65,18 +70,63 @@ data class MovieOverviewScreen(
 								Modifier.padding(16.dp),
 								style = MaterialTheme.typography.bodyLarge
 							)
-							Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-								val nav = findGlobalNavController()
-								// TODO: check progress and show a resume button instead
-								Button(
-									onClick = {
-										nav.navigate(
-											PlayVideoScreen(item)
-										)
+							Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+								Row {}
+								Row {
+									val nav = findGlobalNavController()
+									// TODO: check progress and show a resume button instead
+									Button(
+										onClick = {
+											nav.navigate(
+												PlayVideoScreen(item)
+											)
+										}
+									) {
+										Icon(Icons.Outlined.PlayArrow, contentDescription = "Play")
+										Text("Play")
 									}
-								) {
-									Icon(Icons.Outlined.PlayArrow, contentDescription = "Play")
-									Text("Play")
+								}
+								Row {
+									Button(onClick = {
+										// TODO: move this out of common code
+										val fileChooser = JFileChooser()
+										fileChooser.dialogTitle = "Download MP4"
+										fileChooser.selectedFile = File("${item.item.name}")
+										val mp4Filter = FileNameExtensionFilter("MP4", "mp4")
+										val mkvFilter = FileNameExtensionFilter("Matroska", "mkv")
+										fileChooser.addChoosableFileFilter(mp4Filter)
+										fileChooser.addChoosableFileFilter(mkvFilter)
+										fileChooser.fileFilter = mp4Filter
+										if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+											val containerType = when (fileChooser.fileFilter) {
+												mkvFilter -> "mkv"
+												mp4Filter -> "mp4"
+												else -> "mp4"
+											}
+											val downloadUrl = item.provenance.useApiClient {
+												it.videosApi
+													.getVideoStreamUrl(
+														itemId = item.item.id,
+														container = containerType,
+														static = true,
+
+													)
+											}.unsafeGetResult()
+											var outputFile = fileChooser.selectedFile
+											if (outputFile.extension != containerType)
+												outputFile =
+													outputFile.resolveSibling(outputFile.nameWithoutExtension + "." + containerType)
+											outputFile.parentFile.mkdirs()
+											// TODO: show download progress somewhere in sidebar most likely
+											URL(downloadUrl).openStream().use { inputStream ->
+												outputFile.outputStream().use { outputStream ->
+													inputStream.copyTo(outputStream)
+												}
+											}
+										}
+									}) {
+										Icon(Icons.Outlined.Download, contentDescription = "Download")
+									}
 								}
 							}
 						}
